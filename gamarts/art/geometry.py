@@ -209,9 +209,9 @@ class TexturedPolygon(Art):
         force_load_on_start: bool = False,
         permanent: bool = False,
     ):
-        for p in points:
-            if p[0] < 0 or p[1] < 0:
-                raise ValueError(f"All points coordinates of a polygon must have a positive value, got {p}")
+        # for p in points:
+        #     if p[0] < 0 or p[1] < 0:
+        #         raise ValueError(f"All points coordinates of a polygon must have a positive value, got {p}")
 
         self.points = points
         super().__init__(transformation, force_load_on_start, permanent)
@@ -223,14 +223,19 @@ class TexturedPolygon(Art):
         self.texture = texture
         self.texture_top_left = texture_top_left
 
-    def _load(self):
+    def _load(self, **ld_kwargs):
 
         surfaces = []
         need_to_unload = False
 
         if not self.texture.is_loaded:
             need_to_unload = True
-            self.texture.load()
+            self.texture.load(**ld_kwargs)
+
+        else: # the texture might have change, so can its dimensions.
+            self._width = self.texture.width
+            self._height = self.texture.height
+            self._find_initial_dimension()
 
         for surf in self.texture.surfaces:
             background = Surface((self._width, self._height), SRCALPHA)
@@ -275,18 +280,23 @@ class TexturedCircle(Art):
 
         self._find_initial_dimension()
 
-    def _load(self):
+    def _load(self, **ld_kwargs):
 
         need_to_unload = False
         if not self.texture.is_loaded:
             need_to_unload = True
-            self.texture.load()
+            self.texture.load(**ld_kwargs)
+    
+        else: # the texture might have change, so can its dimensions.
+            self._width = self.texture.width
+            self._height = self.texture.height
+            self._find_initial_dimension()
 
         surf = Surface((self._width, self._height), SRCALPHA)
         draw.circle(surf, (255, 255, 255, 255), self.center,
             self.radius, 0, self.draw_top_right, self.draw_top_left, self.draw_bottom_left, self.draw_bottom_right)
         mask = msk.from_surface(surf, 127)
-        self.surfaces = (mask.to_surface(setsurface=surface) for surface in self.texture.surfaces)
+        self.surfaces = tuple(mask.to_surface(setsurface=surface.convert_alpha(), unsetsurface=surf) for surface in self.texture.surfaces)
         self.durations = self.texture.durations
 
         if need_to_unload:
@@ -315,17 +325,22 @@ class TexturedEllipse(Art):
         self.texture = texture
         self._find_initial_dimension()
 
-    def _load(self):
+    def _load(self, **ld_kwargs):
 
         need_to_unload = False
         if not self.texture.is_loaded:
             need_to_unload = True
-            self.texture.load()
+            self.texture.load(**ld_kwargs)
+        
+        else: # the texture might have change, so can its dimensions.
+            self._width = self.texture.width
+            self._height = self.texture.height
+            self._find_initial_dimension()
 
-        surf = Surface(self.rect[2:4], SRCALPHA)
+        surf = Surface((self._width, self._height), SRCALPHA)
         draw.ellipse(surf, (255, 255, 255, 255), self.rect, 0)
         mask = msk.from_surface(surf, 127)
-        self.surfaces = (mask.to_surface(setsurface=surface) for surface in self.texture.surfaces)
+        self.surfaces = tuple(mask.to_surface(setsurface=surface.convert_alpha(), unsetsurface=surf) for surface in self.texture.surfaces)
         self.durations = self.texture.durations
 
         if need_to_unload:
@@ -356,12 +371,12 @@ class TexturedRoundedRectangle(Art):
 
         self._find_initial_dimension()
 
-    def _load(self):
+    def _load(self, **ld_kwargs):
 
         need_to_unload = False
         if not self.texture.is_loaded:
             need_to_unload = True
-            self.texture.load()
+            self.texture.load(**ld_kwargs)
 
         surf = Surface((self.width, self.height), SRCALPHA)
         draw.rect(
@@ -376,7 +391,7 @@ class TexturedRoundedRectangle(Art):
             self.bottom_right
         )
         mask = msk.from_surface(surf, 127)
-        self.surfaces = (mask.to_surface(setsurface=surface) for surface in self.texture.surfaces)
+        self.surfaces = tuple(mask.to_surface(setsurface=surface.convert_alpha(), unsetsurface=surf) for surface in self.texture.surfaces)
         self.durations = self.texture.durations
 
         if need_to_unload:

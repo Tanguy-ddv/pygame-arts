@@ -114,5 +114,23 @@ def see_geometries2():
     
     loop(lambda loop_duration: update_and_show(loop_duration, arts, True), screen)
 
+def see_textures():
+    from gamarts import GIFFile, TexturedCircle, TexturedEllipse, TexturedPolygon, TexturedRoundedRectangle, Art
+    screen = init()
+    screen.fill((255, 255, 255, 255))
+    earth = GIFFile("images/wikipedia_earth.gif")
+    arts: list[Art] = [
+        TexturedCircle(75, earth),
+        TexturedEllipse(75, 50, earth),
+        TexturedPolygon([(0, 0), (100, 100), (0, 100)], earth),
+        TexturedRoundedRectangle(earth, 100, 100, 0, 0)
+    ]
+
+    loop(lambda loop_duration: update_and_show(loop_duration, arts, True), screen)
+
+    arts[0].save("circle.png", 1)
+
+
 # see_geometries()
-see_geometries2()
+# see_geometries2()
+see_textures()
