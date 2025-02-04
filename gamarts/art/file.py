@@ -67,15 +67,15 @@ class ImageFolder(Art):
         self._find_initial_dimension()
 
     def _load(self, **ld_kwargs):
-        self.surfaces = (load(path) for path in self._paths)
-        if self._introduction > len(self.surfaces):
+        self.surfaces = tuple(load(path) for path in self._paths)
+        if self._introduction > len(self._paths):
             raise ValueError(
                 f"The introduction specified for this ImageFolder is too high, got {self._introduction} while there is only {len(self.surfaces)} images."
             )
         if isinstance(self.durs, int):
-            self.durations = (self.durs for _ in self.surfaces)
+            self.durations = tuple(self.durs for _ in self._paths)
         else:
-            if len(self.durs) != len(self.surfaces):
+            if len(self.durs) != len(self._paths):
                 raise ValueError(
                     f"The length of the durations list ({len(self.durs)}) does not match the len of the number of images ({len(self.surfaces)})"
                 )
