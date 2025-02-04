@@ -12,7 +12,6 @@ class DrawCircle(Transformation):
         radius: int,
         center: tuple[int, int],
         thickness: int = 0,
-        angle: float = 0.,
         allow_antialias: bool = True
     ) -> None:
         super().__init__()
@@ -22,11 +21,11 @@ class DrawCircle(Transformation):
         self.thickness = thickness
         self.center = center
         self.allow_antialias = allow_antialias
-        self.angle = angle
 
     def apply(self, surfaces: tuple[Surface], durations: tuple[int], introduction: int, index: int, width: int, height: int, **ld_kwargs):
         antialias = self.allow_antialias and ld_kwargs.get("antialias", False)
-        surfaces = tuple(circle(surface, self.center, self.radius, self.color, self.thickness, antialias) for surface in surfaces)
+        for surf in surfaces:
+            circle(surf, self.center, self.radius, self.color, self.thickness, antialias)
         return surfaces, durations, introduction, index, width, height
 
 class DrawRectangle(Transformation):
@@ -45,7 +44,8 @@ class DrawRectangle(Transformation):
         self.thickness = thickness
 
     def apply(self, surfaces: tuple[Surface], durations: tuple[int], introduction: int, index: int, width: int, height: int, **ld_kwargs):
-        surfaces = tuple(rectangle(surface, self.rect, self.color, self.thickness) for surface in surfaces)
+        for surf in surfaces:
+            rectangle(surf, self.rect, self.color, self.thickness)
         return surfaces, durations, introduction, index, width, height
 
 class DrawRoundedRectantle(Transformation):
@@ -73,7 +73,8 @@ class DrawRoundedRectantle(Transformation):
 
     def apply(self, surfaces: tuple[Surface], durations: tuple[int], introduction: int, index: int, width: int, height: int, **ld_kwargs):
         antialias = self.allow_antialias and ld_kwargs.get("antialias", False)
-        surfaces = tuple(rounded_rectangle(surface, self.rect, self.color, self.thickness, antialias, self.top_left, self.top_right, self.bottom_left, self.bottom_right) for surface in surfaces)
+        for surf in surfaces:
+            rounded_rectangle(surf, self.rect, self.color, self.thickness, antialias, self.top_left, self.top_right, self.bottom_left, self.bottom_right)
         return surfaces, durations, introduction, index, width, height
 
 class DrawEllipse(Transformation):
@@ -99,7 +100,8 @@ class DrawEllipse(Transformation):
 
     def apply(self, surfaces: tuple[Surface], durations: tuple[int], introduction: int, index: int, width: int, height: int, **ld_kwargs):
         antialias = self.allow_antialias and ld_kwargs.get("antialias", False)
-        surfaces = tuple(ellipse(surface, self.center, self.x_radius, self.y_radius, self.color, self.thickness, antialias, self.angle) for surface in surfaces)
+        for surf in surfaces:
+            ellipse(surf, self.center, self.x_radius, self.y_radius, self.color, self.thickness, antialias, self.angle)
         return surfaces, durations, introduction, index, width, height
 
 class DrawPolygon(Transformation):
@@ -121,7 +123,8 @@ class DrawPolygon(Transformation):
 
     def apply(self, surfaces: tuple[Surface], durations: tuple[int], introduction: int, index: int, width: int, height: int, **ld_kwargs):
         antialias = self.allow_antialias and ld_kwargs.get("antialias", False)
-        surfaces = tuple(polygon(surface, self.points, self.color, self.thickness, antialias) for surface in surfaces)
+        for surf in surfaces:
+            polygon(surf, self.points, self.color, self.thickness, antialias)
         return surfaces, durations, introduction, index, width, height
 
 class DrawLine(Transformation):
@@ -137,7 +140,8 @@ class DrawLine(Transformation):
 
     def apply(self, surfaces: tuple[Surface], durations: tuple[int], introduction: int, index: int, width: int, height: int, **ld_kwargs):
         antialias = self.allow_antialias and ld_kwargs.get("antialias", False)
-        surfaces = tuple(line(surface, self.p1, self.p2, self.color, self.thickness, antialias) for surface in surfaces)
+        for surf in surfaces:
+            line(surf, self.p1, self.p2, self.color, self.thickness, antialias)
         return surfaces, durations, introduction, index, width, height
 
 class DrawLines(Transformation):
@@ -153,7 +157,8 @@ class DrawLines(Transformation):
 
     def apply(self, surfaces: tuple[Surface], durations: tuple[int], introduction: int, index: int, width: int, height: int, **ld_kwargs):
         antialias = self.allow_antialias and ld_kwargs.get("antialias", False)
-        surfaces = tuple(lines(surface, self.points, self.color, self.thickness, antialias) for surface in surfaces)
+        for surf in surfaces:
+            lines(surf, self.points, self.color, self.thickness, antialias, self.closed)
         return surfaces, durations, introduction, index, width, height
 
 class DrawArc(Transformation):
@@ -185,7 +190,8 @@ class DrawArc(Transformation):
 
     def apply(self, surfaces: tuple[Surface], durations: tuple[int], introduction: int, index: int, width: int, height: int, **ld_kwargs):
         antialias = self.allow_antialias and ld_kwargs.get("antialias", False)
-        surfaces = tuple(arc(surface, self.ellipsis_center, self.rx, self.ry, self.color, self.thickness, antialias, self.angle, self.from_angle, self.to_angle) for surface in surfaces)
+        for surf in surfaces:
+            arc(surf, self.ellipsis_center, self.rx, self.ry, self.color, self.thickness, antialias, self.angle, self.from_angle, self.to_angle)
 
         return surfaces, durations, introduction, index, width, height
 
@@ -218,19 +224,6 @@ class DrawPie(Transformation):
 
     def apply(self, surfaces: tuple[Surface], durations: tuple[int], introduction: int, index: int, width: int, height: int, **ld_kwargs):
         antialias = self.allow_antialias and ld_kwargs.get("antialias", False)
-        surfaces = tuple(pie(surface, self.ellipsis_center, self.rx, self.ry, self.color, self.thickness, antialias, self.angle, self.from_angle, self.to_angle) for surface in surfaces)
-        return surfaces, durations, introduction, index, width, height
-
-class DrawBezier(Transformation):
-    """Draw a bezier curb on the art."""
-
-    def __init__(self, color: Color, points: Sequence[tuple[int, int]], steps: int) -> None:
-        self.color = color
-        self.points = points
-        self.steps = steps
-        super().__init__()
-
-    def apply(self, surfaces: tuple[Surface], durations: tuple[int], introduction: int, index: int, width: int, height: int, **ld_kwargs):
         for surf in surfaces:
-            gfxdraw.bezier(surf, self.points, self.steps, self.color)
+            pie(surf, self.ellipsis_center, self.rx, self.ry, self.color, self.thickness, antialias, self.angle, self.from_angle, self.to_angle)
         return surfaces, durations, introduction, index, width, height

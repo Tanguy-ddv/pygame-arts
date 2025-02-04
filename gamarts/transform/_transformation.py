@@ -159,7 +159,7 @@ class Crop(Transformation):
     def get_new_dimension(self, width, height):
         return self.rect.size
 
-class Padding(Transformation):
+class Pad(Transformation):
     """
     The pad transformation add a solid color extension on every side of the art. If the pad is negative, act like a crop.
     """

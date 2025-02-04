@@ -35,7 +35,7 @@ class SetAlpha(Transformation):
     
     def require_parallelization(self, settings):
         # If the mask is None, setting alpha is straight_forward. Otherwise, it required copying data.
-        return not self.mask is None
+        return self.mask is not None
 
 class GrayScale(Transformation):
     """
@@ -68,11 +68,11 @@ class RBGMap(_MatrixTransformation):
         for surf in surfaces:
             rgb_array = sa.pixels3d(surf)
             if self.mask is None:
-                rgb_array[:] = np.apply_along_axis(self.function, 2, rgb_array)
+                rgb_array[:] = np.clip(np.apply_along_axis(lambda t: self.function(*t), 2, rgb_array), 0, 255).astype(np.int8)
             else:
                 if not self.mask.is_loaded():
                     self.mask.load()
-                rgb_array[self.mask.matrix > self.mask_threshold] = np.apply_along_axis(self.function, 2, rgb_array)[self.mask.matrix > self.mask_threshold]
+                rgb_array[self.mask.matrix > self.mask_threshold] = np.clip(np.apply_along_axis(lambda t: self.function(*t), 2, rgb_array), 0, 255).astype(np.int8)[self.mask.matrix > self.mask_threshold]
 
         return surfaces, durations, introduction, index, width, height
     
@@ -105,10 +105,11 @@ class RGBAMap(_MatrixTransformation):
             else:
                 if not self.mask.is_loaded():
                     self.mask.load()
-                rgb_array[:, :, 0][self.mask.matrix > self.mask_threshold] = new_r[self.mask.matrix > self.mask_threshold]
-                rgb_array[:, :, 1][self.mask.matrix > self.mask_threshold] = new_g[self.mask.matrix > self.mask_threshold]
-                rgb_array[:, :, 2][self.mask.matrix > self.mask_threshold] = new_b[self.mask.matrix > self.mask_threshold]
-                alpha_array[self.mask > self.mask_threshold] = new_a[self.mask > self.mask_threshold]
+                mask = self.mask.matrix > self.mask_threshold
+                rgb_array[:, :, 0][mask] = new_r[mask]
+                rgb_array[:, :, 1][mask] = new_g[mask]
+                rgb_array[:, :, 2][mask] = new_b[mask]
+                alpha_array[mask] = new_a[mask]
 
         return surfaces, durations, introduction, index, width, height
 
@@ -125,7 +126,7 @@ class Saturate(_MatrixTransformation):
             self.mask.load()
             factor = self.mask.matrix*self.factor
         else:
-            factor = factor
+            factor = self.factor
         for surf in surfaces:
             saturate(surf, factor)
 
@@ -144,27 +145,7 @@ class Desaturate(_MatrixTransformation):
             self.mask.load()
             factor = self.mask.matrix*self.factor
         else:
-            factor = factor
-        for surf in surfaces:
-            desaturate(surf, factor)
-
-        return surfaces, durations, introduction, index, width, height
-
-    
-class Desaturate(_MatrixTransformation):
-    """Desaturate the art by a given factor."""
-
-    def __init__(self, factor: float, mask: Mask = None) -> None:
-        super().__init__()
-        self.factor = factor
-        self.mask = mask
-
-    def apply(self, surfaces: tuple[Surface], durations: tuple[int], introduction: int, index: int, width: int, height: int, **ld_kwargs):
-        if not self.mask is None:
-            self.mask.load()
-            factor = self.mask.matrix*self.factor
-        else:
-            factor = factor
+            factor = self.factor
         for surf in surfaces:
             desaturate(surf, factor)
 
@@ -183,7 +164,7 @@ class Darken(_MatrixTransformation):
             self.mask.load()
             factor = self.mask.matrix*self.factor
         else:
-            factor = factor
+            factor = self.factor
         for surf in surfaces:
             darken(surf, factor)
 
@@ -202,14 +183,14 @@ class Lighten(_MatrixTransformation):
             self.mask.load()
             factor = self.mask.matrix*self.factor
         else:
-            factor = factor
+            factor = self.factor
         for surf in surfaces:
             lighten(surf, factor)
 
         return surfaces, durations, introduction, index, width, height
 
 class ShiftHue(_MatrixTransformation):
-    """Shift the hue of all surface of the art by a given factor."""
+    """Shift the hue of all surface of the art by a given value."""
 
     def __init__(self, value: int, mask: Mask = None) -> None:
         super().__init__()
@@ -219,11 +200,11 @@ class ShiftHue(_MatrixTransformation):
     def apply(self, surfaces: tuple[Surface], durations: tuple[int], introduction: int, index: int, width: int, height: int, **ld_kwargs):
         if not self.mask is None:
             self.mask.load()
-            factor = self.mask.matrix*self.value
+            value = self.mask.matrix*self.value
         else:
-            factor = factor
+            value = self.value
         for surf in surfaces:
-            shift_hue(surf, factor)
+            shift_hue(surf, value)
 
         return surfaces, durations, introduction, index, width, height
 
@@ -252,7 +233,6 @@ class AdjustContrast(_MatrixTransformation):
     def __init__(self, contrast: int, mask: Mask = None, mask_threshold: float = 0.99) -> None:
         super().__init__()
         self.factor = (259 * (contrast + 255)) / (255 * (259 - contrast))
-        self.contrast = contrast
         self.mask = mask
         self.mask_threshold = mask_threshold
 
@@ -269,7 +249,7 @@ class AdjustContrast(_MatrixTransformation):
 
         return surfaces, durations, introduction, index, width, height
 
-class AdjustBrightness(_MatrixTransformation):
+class AddBrightness(_MatrixTransformation):
     """Change the brightness of an art. The brightness is a value between -255 and +255."""
 
     def __init__(self, brightness: int, mask: Mask = None, mask_threshold: float = 0.99) -> None:

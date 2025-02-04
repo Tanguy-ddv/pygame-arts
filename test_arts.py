@@ -128,9 +128,135 @@ def see_textures():
 
     loop(lambda loop_duration: update_and_show(loop_duration, arts, True), screen)
 
-    arts[0].save("circle.png", 1)
-
-
 # see_geometries()
 # see_geometries2()
-see_textures()
+# see_textures()
+
+# test transformations
+
+def see_transformations():
+    from gamarts import GIFFile
+    screen = init()
+    screen.fill((255, 255, 255, 255))
+    from gamarts.transform import Rotate, Zoom, Resize, Invert, SetIntroductionIndex, SetIntroductionTime, Transpose
+    earth = GIFFile("images/wikipedia_earth.gif", Resize((200, 200)))
+    arts = [
+        earth,
+        earth.copy(),
+        earth.copy(Rotate(45)),
+        earth.copy(Zoom(1/2)),
+        earth.copy(Resize((200, 100))),
+        earth.copy(Invert()),
+        earth.copy(SetIntroductionIndex(7)),
+        earth.copy(SetIntroductionTime(300)),
+        earth.copy(Transpose())
+    ]
+
+    loop(lambda loop_duration: update_and_show(loop_duration, arts, True), screen)
+
+def see_transformations2():
+    from gamarts import GIFFile
+    screen = init()
+    screen.fill((255, 255, 255, 255))
+    from gamarts.transform import Resize, Flip, Crop, VerticalChop, HorizontalChop, Last, First, ExtractMany, ExtractOne
+    earth = GIFFile("images/wikipedia_earth.gif", Resize((200, 200)))
+    arts = [
+        earth,
+        earth.copy(Flip(True, False)),
+        earth.copy(Crop(50, 50, 100, 100)),
+        earth.copy(VerticalChop(50, 100)),
+        earth.copy(HorizontalChop(50, 150)),
+        earth.copy(Last()),
+        earth.copy(First()),
+        earth.copy(ExtractMany(8, 15)),
+        earth.copy(ExtractOne(17))
+    ]
+
+    loop(lambda loop_duration: update_and_show(loop_duration, arts, True), screen)
+
+def see_transformations3():
+    from gamarts import GIFFile
+    screen = init()
+    screen.fill((255, 255, 255, 255))
+    from gamarts.transform import Resize, Pad, SpeedUp, SlowDown, ResetDuration, ResetDurations, Saturate, Desaturate, ShiftHue
+    earth = GIFFile("images/wikipedia_earth.gif", Resize((200, 200)))
+    earth.load()
+    arts = [
+        earth,
+        earth.copy(Pad((100, 100, 0), 20, 50, 0, 0)),
+        earth.copy(SlowDown(2)),
+        earth.copy(SpeedUp(2)),
+        earth.copy(ResetDurations([10*i for i in range(len(earth.durations))])),
+        earth.copy(ResetDuration(250)),
+        earth.copy(Saturate(0.7)),
+        earth.copy(Desaturate(0.5)),
+        earth.copy(ShiftHue(90))
+    ]
+
+    loop(lambda loop_duration: update_and_show(loop_duration, arts, True), screen)
+
+def see_transformations4():
+    from gamarts import GIFFile
+    screen = init()
+    screen.fill((255, 255, 255, 255))
+    from gamarts.transform import Resize, SetAlpha, GrayScale, Gamma, AdjustContrast, AddBrightness, ShiftHue, Darken, Lighten
+    from gamarts.mask import GradientCircle
+    earth = GIFFile("images/wikipedia_earth.gif", Resize((200, 200)))
+    arts = [
+        earth,
+        earth.copy(SetAlpha(100)),
+        earth.copy(GrayScale()),
+        earth.copy(AdjustContrast(120)),
+        earth.copy(Gamma(0.5)),
+        earth.copy(AddBrightness(25)),
+        earth.copy(Darken(0.7)),
+        earth.copy(ShiftHue(90, GradientCircle(*earth.size, 10, 90))),
+        earth.copy(Lighten(0.3))
+    ]
+
+    loop(lambda loop_duration: update_and_show(loop_duration, arts, True), screen)
+
+def see_transformations5():
+    from gamarts import GIFFile
+    screen = init()
+    screen.fill((255, 255, 255, 255))
+    from gamarts.transform import Resize, RBGMap, RGBAMap, DrawArc, DrawRectangle, DrawCircle, DrawEllipse, DrawLine, DrawLines
+    from gamarts.mask import GradientCircle
+    earth = GIFFile("images/wikipedia_earth.gif", Resize((200, 200)))
+    arts = [
+        earth,
+        earth.copy(RBGMap(lambda r,g,b: (r**2, g, b))),
+        earth.copy(RGBAMap(lambda r,g,b,a: (r*a, g, b, a))),
+        earth.copy(DrawArc((255, 0, 0, 255), (100, 100), 50, 30, 0, 90, 18, 9)),
+        earth.copy(DrawRectangle((0, 255, 0, 255), (50, 50, 100, 100), 20)),
+        earth.copy(DrawCircle((0, 255, 128, 100), 80, (100, 100), 20)),
+        earth.copy(DrawEllipse((0, 255, 128, 100), 80, 50, (100, 100), 20)),
+        earth.copy(DrawLine((128, 255, 0, 100), (0, 0), (150, 150), 8)),
+        earth.copy(DrawLines((128, 255, 0, 100), [(0, 0), (100, 150), (100, 50), (200, 200)], 8)),
+    ]
+
+    loop(lambda loop_duration: update_and_show(loop_duration, arts, True), screen)
+
+def see_transformations6():
+    from gamarts import GIFFile
+    screen = init()
+    screen.fill((255, 255, 255, 255))
+    from gamarts.transform import Resize, DrawPolygon, DrawPie, DrawRoundedRectantle
+    from gamarts.mask import GradientCircle
+    earth = GIFFile("images/wikipedia_earth.gif", Resize((200, 200)))
+    arts = [
+        earth,
+        earth.copy(DrawPolygon((128, 255, 0, 100), [(0, 0), (100, 150), (100, 50), (200, 200)], 8)),
+        earth.copy(DrawPie((255, 0, 0, 255), (100, 100), 50, 30, 0, 90, 18, 9)),
+        earth.copy(DrawRoundedRectantle((0, 255, 0, 255), (50, 50, 100, 100), 20, 15, thickness=20)),
+    ]
+
+    loop(lambda loop_duration: update_and_show(loop_duration, arts, True), screen)
+
+
+# see_transformations()
+# see_transformations2()
+# see_transformations3()
+# see_transformations4()
+# see_transformations5()
+see_transformations6()

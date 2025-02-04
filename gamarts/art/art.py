@@ -190,13 +190,13 @@ class Art(ABC):
         else:
             raise RuntimeError("A transformation have be called on an unloaded Art, please use the art's constructor to transform the initial art.")
 
-    def copy(self, additional_transformation: Transformation = None) -> '_ArtFromCopy':
+    def copy(self, additional_transformation: Transformation = None, permanent: bool = False) -> '_ArtFromCopy':
         """
         Return an independant copy of the art.
         
         If force_load_on_start is set to True, the copy will be loaded at the start of the phase. Set it to true if 
         """
-        copy = _ArtFromCopy(self, additional_transformation)
+        copy = _ArtFromCopy(self, additional_transformation, permanent)
         self._copies.append(copy)
         return copy
 
@@ -216,8 +216,8 @@ class Art(ABC):
 
 class _ArtFromCopy(Art):
 
-    def __init__(self, original: Art, additional_transformation: Transformation, permanent: bool = False, parallelize_transformations: bool = False):
-        super().__init__(additional_transformation, original._force_load_on_start, permanent, parallelize_transformations)
+    def __init__(self, original: Art, additional_transformation: Transformation, permanent: bool = False):
+        super().__init__(additional_transformation, original._force_load_on_start, permanent)
         # The on load transformation has been removed because the transformation are executed during the loading of the original
         self._original = original
         self._height = self._original.height
