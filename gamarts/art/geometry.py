@@ -21,7 +21,7 @@ class Rectangle(Art):
     ):
         super().__init__(transformation, force_load_on_start, permanent)
 
-        self.color = color
+        self.color = Color(color)
         self._initial_width, self.initial_height = width, height
         self._width = width
         self._height = height
@@ -29,8 +29,11 @@ class Rectangle(Art):
         self._find_initial_dimension()
 
     def _load(self, **ld_kwargs):
-        surf = Surface((self._initial_width, self.initial_height), SRCALPHA)
-        rectangle(surf, (0, 0, self._initial_width, self.initial_height), self.color, self.thickness)
+        surf = Surface((self._initial_width, self.initial_height), SRCALPHA if self.color.a != 255 and self.thickness != 0 else 0)
+        # Pygamecv's paradigm is: defining the control points and let the thickness go outside of the geometry
+        # Here, we unsure the width and height are excatly what is asked to be, not width + thickness and height + thickness
+        rect = (self.thickness//2, self.thickness//2, self._initial_width - self.thickness, self.initial_height - self.thickness)
+        rectangle(surf, rect, self.color, self.thickness)
         self.surfaces = (surf,)
         self.durations = (0,)
 
@@ -59,19 +62,19 @@ class RoundedRectangle(Art):
         self.bottom_left = bottom_left
         self.bottom_right = bottom_right
         self.color = color
-        self._initial_width, self.initial_height = width, height
-        self._width = width
-        self._height = height
         self.thickness = thickness
+        self._width = self._initial_width = width
+        self._height = self.initial_height = height
         self.allow_antialias = allow_antialias
         self.background_color = background_color
         self._find_initial_dimension()
 
     def _load(self, **ld_kwargs):
         surf = Surface((self._initial_width, self.initial_height), SRCALPHA)
-        if not self.background_color is None:
+        if self.background_color is not None: # Useful in case of antialias
             surf.fill((*self.background_color[:3], 0))
-        rounded_rectangle(surf, (0, 0, self._width, self._height), self.color, self.thickness, ld_kwargs.get("antialias", False) and self.allow_antialias,
+        rect = (self.thickness//2, self.thickness//2, self._initial_width - self.thickness, self.initial_height - self.thickness)
+        rounded_rectangle(surf, rect, self.color, self.thickness, ld_kwargs.get("antialias", False) and self.allow_antialias,
                           self.top_left, self.top_right, self.bottom_left, self.bottom_right)
         self.surfaces = (surf,)
         self.durations = (0,)
@@ -102,10 +105,15 @@ class Circle(Art):
 
     def _load(self, **ld_kwargs):
         surf = Surface((self.radius*2, self.radius*2), SRCALPHA)
-        if not self.background_color is None:
+        if self.background_color is not None: # Useful in case of antialias
             surf.fill((*self.background_color[:3], 0))
-        circle(surf, (self.radius, self.radius), self.color, self.radius,
-             self.thickness, ld_kwargs.get("antialias", False) and self.allow_antialias)
+        radius = self.radius - self.thickness//2
+        if radius > 0:
+            circle(surf, (self.radius, self.radius), radius, self.color,
+                self.thickness, ld_kwargs.get("antialias", False) and self.allow_antialias)
+        else:
+            circle(surf, (self.radius, self.radius), self.radius, self.color,
+                0, ld_kwargs.get("antialias", False) and self.allow_antialias)
 
         self.surfaces = (surf,)
         self.durations = (0,)
@@ -137,9 +145,14 @@ class Ellipse(Art):
 
     def _load(self, **ld_kwargs):
         surf = Surface((self.radius_x*2, self.radius_y*2), SRCALPHA)
-        if not self.background_color is None:
+        if self.background_color is not None: # Useful in case of antialias
             surf.fill((*self.background_color[:3], 0))
-        ellipse(surf, (self.radius_x, self.radius_y), self.radius_x, self.radius_y, self.color, self.thickness, ld_kwargs.get("antialias", False) and self.allow_antialias, 0)
+        radius_x = self.radius_x - self.thickness //2
+        radius_y = self.radius_y - self.thickness //2
+        if radius_x > 0 and radius_y > 0:
+            ellipse(surf, (self.radius_x, self.radius_y), radius_x, radius_y, self.color, self.thickness, ld_kwargs.get("antialias", False) and self.allow_antialias, 0)
+        else:
+            ellipse(surf, (self.radius_x, self.radius_y), self.radius_x, self.radius_y, self.color, 0, ld_kwargs.get("antialias", False) and self.allow_antialias, 0)
         self.surfaces = (surf,)
         self.durations = (0,)
 
@@ -157,28 +170,27 @@ class Polygon(Art):
         allow_antialias: bool = True,
         background_color: Color = None
     ):
-        for p in points:
-            if p[0] < 0 or p[1] < 0:
-                raise ValueError(f"All points coordinates of a polygon must have a positive value, got {p}")
 
         self.points = points
         self.thickness = thickness
         self.color = color
         super().__init__(transformation, force_load_on_start, permanent)
 
-        self._max_x = max(p[0] for p in self.points) + thickness//2
-        self._max_y = max(p[1] for p in self.points) + thickness//2
+        min_x = min(p[0] for p in self.points)
+        min_y = min(p[1] for p in self.points)
 
-        self._height = self._max_x
-        self._width = self._max_y
+        self.points = [(p[0] - min_x + thickness//2, p[1] - min_y + thickness//2) for p in points]
+
+        self._height = self._initial_height = max(p[1] for p in self.points) + thickness//2
+        self._width = self._initial_width = max(p[0] for p in self.points) + thickness//2
         self.allow_antialias = allow_antialias
         self.background_color = background_color
         self._find_initial_dimension()
 
     def _load(self, **ld_kwargs):
 
-        surf = Surface((self._max_x, self._max_y), SRCALPHA)
-        if not self.background_color is None:
+        surf = Surface((self._initial_width, self._initial_height), SRCALPHA)
+        if self.background_color is not None:
             surf.fill((*self.background_color[:3], 0))
         polygon(surf, self.points, self.color, self.thickness, ld_kwargs.get("antialias", False) and self.allow_antialias)
 
