@@ -20,7 +20,9 @@ class ImageFile(Art):
     def __init__(self, file: str, transformation: Transformation = None, force_load_on_start: bool = False, permanent: bool = False) -> None:
         super().__init__(transformation, force_load_on_start, permanent)
         self.full_path = file
-        self._width, self._height = Image.open(self.full_path).size
+        im = Image.open(self.full_path)
+        self._width, self._height = im.size
+        im.close()
         self._find_initial_dimension()
 
     def _load(self, **ld_kwargs):
@@ -63,7 +65,9 @@ class ImageFolder(Art):
             for f in os.listdir(self.full_path)
             if os.path.isfile(os.path.join(self.full_path, f))
         ]
-        self._width, self._height = Image.open(self._paths[0]).size
+        im = Image.open(self._paths[0])
+        self._width, self._height = im.size
+        im.close()
         self._find_initial_dimension()
 
     def _load(self, **ld_kwargs):
@@ -98,7 +102,9 @@ class GIFFile(Art):
         super().__init__(transformation, force_load_on_start, permanent)
         self.full_path = file
         self._introduction = introduction
-        self._width, self._height = Image.open(self.full_path).size
+        im = Image.open(self.full_path)
+        self._width, self._height = im.size
+        im.close()
         self._find_initial_dimension()
 
     def _load(self, **ld_kwargs):
@@ -120,3 +126,4 @@ class GIFFile(Art):
             raise ValueError(
                 f"The introduction specified for this ImageFolder is too high, got {self._introduction} while there is only {len(self.surfaces)} images."
             )
+        gif.close()
