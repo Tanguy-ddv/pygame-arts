@@ -26,7 +26,7 @@ class SetAlpha(Transformation):
                 surf.set_alpha(self.alpha)
         else:
             if not self.mask.is_loaded():
-                self.mask.load()
+                self.mask.load(width, height, **ld_kwargs)
             for surf in surfaces:
                 alpha_array = sa.pixels_alpha(surf)
                 alpha_array[:] = (1 - self.mask.matrix)*255
@@ -71,7 +71,7 @@ class RBGMap(_MatrixTransformation):
                 rgb_array[:] = np.clip(np.apply_along_axis(lambda t: self.function(*t), 2, rgb_array), 0, 255).astype(np.int8)
             else:
                 if not self.mask.is_loaded():
-                    self.mask.load()
+                    self.mask.load(width, height, **ld_kwargs)
                 rgb_array[self.mask.matrix > self.mask_threshold] = np.clip(np.apply_along_axis(lambda t: self.function(*t), 2, rgb_array), 0, 255).astype(np.int8)[self.mask.matrix > self.mask_threshold]
 
         return surfaces, durations, introduction, index, width, height
@@ -104,7 +104,7 @@ class RGBAMap(_MatrixTransformation):
                 alpha_array[:] = new_a
             else:
                 if not self.mask.is_loaded():
-                    self.mask.load()
+                    self.mask.load(width, height, **ld_kwargs)
                 mask = self.mask.matrix > self.mask_threshold
                 rgb_array[:, :, 0][mask] = new_r[mask]
                 rgb_array[:, :, 1][mask] = new_g[mask]
@@ -123,7 +123,7 @@ class Saturate(_MatrixTransformation):
 
     def apply(self, surfaces: tuple[Surface], durations: tuple[int], introduction: int, index: int, width: int, height: int, **ld_kwargs):
         if not self.mask is None:
-            self.mask.load()
+            self.mask.load(width, height, **ld_kwargs)
             factor = self.mask.matrix*self.factor
         else:
             factor = self.factor
@@ -142,7 +142,7 @@ class Desaturate(_MatrixTransformation):
 
     def apply(self, surfaces: tuple[Surface], durations: tuple[int], introduction: int, index: int, width: int, height: int, **ld_kwargs):
         if not self.mask is None:
-            self.mask.load()
+            self.mask.load(width, height, **ld_kwargs)
             factor = self.mask.matrix*self.factor
         else:
             factor = self.factor
@@ -161,7 +161,7 @@ class Darken(_MatrixTransformation):
 
     def apply(self, surfaces: tuple[Surface], durations: tuple[int], introduction: int, index: int, width: int, height: int, **ld_kwargs):
         if not self.mask is None:
-            self.mask.load()
+            self.mask.load(width, height, **ld_kwargs)
             factor = self.mask.matrix*self.factor
         else:
             factor = self.factor
@@ -180,7 +180,7 @@ class Lighten(_MatrixTransformation):
 
     def apply(self, surfaces: tuple[Surface], durations: tuple[int], introduction: int, index: int, width: int, height: int, **ld_kwargs):
         if not self.mask is None:
-            self.mask.load()
+            self.mask.load(width, height, **ld_kwargs)
             factor = self.mask.matrix*self.factor
         else:
             factor = self.factor
@@ -199,7 +199,7 @@ class ShiftHue(_MatrixTransformation):
 
     def apply(self, surfaces: tuple[Surface], durations: tuple[int], introduction: int, index: int, width: int, height: int, **ld_kwargs):
         if not self.mask is None:
-            self.mask.load()
+            self.mask.load(width, height, **ld_kwargs)
             value = self.mask.matrix*self.value
         else:
             value = self.value
@@ -223,7 +223,7 @@ class Invert(_MatrixTransformation):
                 rgb_array[:] = 255 - rgb_array
             else:
                 if not self.mask.is_loaded():
-                    self.mask.load()
+                    self.mask.load(width, height, **ld_kwargs)
                 rgb_array[self.mask.matrix > self.mask_threshold] = 255 - rgb_array[self.mask.matrix > self.mask_threshold]
         return surfaces, durations, introduction, index, width, height
 
@@ -243,7 +243,7 @@ class AdjustContrast(_MatrixTransformation):
                 rgb_array[:] = np.clip((self.factor * (rgb_array - 128) + 128).astype(int), 0, 255)
             else:
                 if not self.mask.is_loaded():
-                    self.mask.load()
+                    self.mask.load(width, height, **ld_kwargs)
                 rgb_array[self.mask.matrix > self.mask_threshold] = np.clip(
                     (self.factor * (rgb_array - 128) + 128).astype(int), 0, 255)[self.mask.matrix > self.mask_threshold]
 
@@ -265,7 +265,7 @@ class AddBrightness(_MatrixTransformation):
                 rgb_array[:] = np.clip(rgb_array + self.brightness, 0, 255)
             else:
                 if not self.mask.is_loaded():
-                    self.mask.load()
+                    self.mask.load(width, height, **ld_kwargs)
                 rgb_array[self.mask.matrix > self.mask_threshold] = np.clip(rgb_array + self.brightness, 0, 255)[self.mask.matrix > self.mask_threshold]
         return surfaces, durations, introduction, index, width, height
 
@@ -289,7 +289,7 @@ class Gamma(_MatrixTransformation):
                 rgb_array[:] = np.clip(((rgb_array/255)**self.gamma * 255).astype(int), 0, 255)
             else:
                 if not self.mask.is_loaded():
-                    self.mask.load()
+                    self.mask.load(width, height, **ld_kwargs)
                 rgb_array[self.mask.matrix > self.mask_threshold] = np.clip(
                     ((rgb_array/255)**self.gamma * 255).astype(int), 0, 255)[self.mask.matrix > self.mask_threshold]
 
