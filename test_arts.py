@@ -206,11 +206,11 @@ def see_transformations4():
         earth,
         earth.copy(SetAlpha(100)),
         earth.copy(GrayScale()),
-        earth.copy(AdjustContrast(120)),
-        earth.copy(Gamma(0.5)),
+        earth.copy(AdjustContrast(0)),
+        earth.copy(Gamma(3)),
         earth.copy(AddBrightness(25)),
         earth.copy(Darken(0.7)),
-        earth.copy(ShiftHue(90, GradientCircle(*earth.size, 10, 90))),
+        earth.copy(ShiftHue(90, GradientCircle(10, 90))),
         earth.copy(Lighten(0.3))
     ]
 
@@ -221,7 +221,6 @@ def see_transformations5():
     screen = init()
     screen.fill((255, 255, 255, 255))
     from gamarts.transform import Resize, RBGMap, RGBAMap, DrawArc, DrawRectangle, DrawCircle, DrawEllipse, DrawLine, DrawLines
-    from gamarts.mask import GradientCircle
     earth = GIFFile("images/wikipedia_earth.gif", Resize((200, 200)))
     arts = [
         earth,
@@ -242,7 +241,6 @@ def see_transformations6():
     screen = init()
     screen.fill((255, 255, 255, 255))
     from gamarts.transform import Resize, DrawPolygon, DrawPie, DrawRoundedRectantle
-    from gamarts.mask import GradientCircle
     earth = GIFFile("images/wikipedia_earth.gif", Resize((200, 200)))
     arts = [
         earth,
@@ -253,10 +251,35 @@ def see_transformations6():
 
     loop(lambda loop_duration: update_and_show(loop_duration, arts, True), screen)
 
+def see_masks():
+    from gamarts import ImageFile
+    screen = init()
+    from gamarts.transform import ShiftHue, Resize
+    from gamarts.mask import Circle, Rectangle, RoundedRectangle, GradientCircle, GradientRectangle, Ellipse, MatrixMask
+    import numpy as np
+    from ZOCallable.functions import ease_in
+    x, y = np.ogrid[:100, :100]
+    matrix = (x + y)/200
+    lenna = ImageFile("images/Lenna.png", Resize((200, 200)))
+    arts = [
+        lenna,
+        lenna.copy(ShiftHue(90, Circle(70))),
+        lenna.copy(ShiftHue(90, Rectangle(0.1, 0.1, 0.5, 0.5))),
+        lenna.copy(ShiftHue(90, RoundedRectangle(0.3, 0.3, 0.7, 0.5, 20))),
+        lenna.copy(ShiftHue(90, GradientCircle(0.3, 0.8))),
+        lenna.copy(ShiftHue(90, GradientRectangle(0.5, 0.7, 0.5, 0.7))),
+        lenna.copy(ShiftHue(90, Ellipse(80, 0.3, (0.5, 0.6)))),
+        lenna.copy(ShiftHue(90, MatrixMask(matrix))),
+        lenna.copy(ShiftHue(90, GradientCircle(0.3, 0.8, ease_in))),
+    ]
+
+    loop(lambda loop_duration: update_and_show(loop_duration, arts, True), screen)
+
 
 # see_transformations()
 # see_transformations2()
 # see_transformations3()
 # see_transformations4()
 # see_transformations5()
-see_transformations6()
+# see_transformations6()
+see_masks()

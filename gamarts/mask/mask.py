@@ -92,7 +92,7 @@ class MatrixMask(Mask):
                 (0, max(0, height - self._matrix.shape[1]))
             ],
             'edge'
-        )[0: width, 0:height]
+        )[: width, :height]
     
     def update_matrix(self, new_matrix: np.ndarray):
         """Update the current matrix with a user-defined matrix. Both matrices should have the same shape."""
@@ -120,7 +120,7 @@ class Circle(Mask):
 class Ellipse(Mask):
     """An Ellipsis is a mask with two values: 0 in the ellipsis and 1 outside."""
 
-    def __init__(self, radius_x: int, radius_y: int, center: tuple[float, float] = (0.5, 0.5)):
+    def __init__(self, radius_x: int | float, radius_y: int | float, center: tuple[int, int] | tuple[float, float] = (0.5, 0.5)):
         super().__init__()
         self.radius_x = radius_x
         self.radius_y = radius_y
@@ -225,18 +225,20 @@ class GradientCircle(Mask):
     def __init__(
             self,
             inner_radius: int | float,
-            outer_radius: int | float,
+            outer_radius: int | float = 1.,
             transition: ZOZOCallable = linear,
              center: tuple[float, float] | tuple[int, int] = (0.5, 0.5)
         ):
         super().__init__()
         self.inner_radius = inner_radius
         self.outer_radius = outer_radius
-        verify_ZOZOCallable(transition, test_vectorizaiton=True)
+        if not verify_ZOZOCallable(transition, test_vectorizaiton=True):
+            raise ValueError("The provided transition isn't a ZOZOCallable.")
         self.transition = transition
         self.center = center
 
     def _load(self, width:int, height: int, **ld_kwargs):
+        grid_x, grid_y = np.ogrid[:width, :height]
 
         center = (
             self.center[0]*width if 0 <= self.center[0] <= 1 else self.center[0],
@@ -245,7 +247,6 @@ class GradientCircle(Mask):
         distances = np.sqrt((grid_x - center[0] - 0.5) ** 2 + (grid_y - center[1] - 0.5) ** 2)
         inner_radius = self.inner_radius*min(height, width) if  0 <= self.inner_radius <= 1 else self.inner_radius
         outer_radius = self.outer_radius*min(height, width) if  0 <= self.outer_radius <= 1 else self.outer_radius
-        grid_x, grid_y = np.ogrid[:width, :height]
         distances = np.sqrt((grid_x - center[0] - 0.5) ** 2 + (grid_y - center[1] - 0.5) ** 2)
         self.matrix = np.clip((distances - inner_radius)/(outer_radius - inner_radius), 0, 1)
         self.matrix = self.transition(self.matrix)

@@ -33,7 +33,7 @@ class SetAlpha(Transformation):
 
         return surfaces, durations, introduction, index, width, height
     
-    def require_parallelization(self, settings):
+    def require_parallelization(self, **ld_kwargs):
         # If the mask is None, setting alpha is straight_forward. Otherwise, it required copying data.
         return self.mask is not None
 
@@ -49,7 +49,7 @@ class GrayScale(Transformation):
 class _MatrixTransformation(Transformation):
     """Matrix transformations are bases for all transformation transforming the matrix with an effect."""
 
-    def require_parallelization(self, settings):
+    def require_parallelization(self, **ld_kwargs):
         return True
 
 class RBGMap(_MatrixTransformation):
@@ -240,7 +240,7 @@ class AdjustContrast(_MatrixTransformation):
         for surf in surfaces:
             rgb_array = sa.pixels3d(surf)
             if self.mask is None:
-                rgb_array[:] = np.clip((self.factor * (rgb_array - 128) + 128).astype(int), 0, 255)
+                rgb_array[:] = np.clip((self.factor * (rgb_array - 128) + 128).astype(np.int8), 0, 255)
             else:
                 if not self.mask.is_loaded():
                     self.mask.load(width, height, **ld_kwargs)
@@ -262,7 +262,7 @@ class AddBrightness(_MatrixTransformation):
         for surf in surfaces:
             rgb_array = sa.pixels3d(surf)
             if self.mask is None:
-                rgb_array[:] = np.clip(rgb_array + self.brightness, 0, 255)
+                rgb_array[:] = np.clip(rgb_array + self.brightness, 0, 255).astype(np.int8)
             else:
                 if not self.mask.is_loaded():
                     self.mask.load(width, height, **ld_kwargs)
@@ -286,7 +286,7 @@ class Gamma(_MatrixTransformation):
         for surf in surfaces:
             rgb_array = sa.pixels3d(surf)
             if self.mask is None:
-                rgb_array[:] = np.clip(((rgb_array/255)**self.gamma * 255).astype(int), 0, 255)
+                rgb_array[:] = np.clip(((rgb_array/255)**self.gamma * 255).astype(np.int8), 0, 255)
             else:
                 if not self.mask.is_loaded():
                     self.mask.load(width, height, **ld_kwargs)
