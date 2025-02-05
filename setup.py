@@ -10,7 +10,6 @@ setup(
     install_requires=[
         'pygame',
         'pygame-cv',
-        'pillow',
         'ZOCallable'
     ],
     long_description=open('README.md').read(),

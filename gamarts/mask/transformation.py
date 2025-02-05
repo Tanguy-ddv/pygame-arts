@@ -1,8 +1,7 @@
 """The transformations submodule contains all masks being transformations of an image, array or of another mask."""
 from abc import ABC, abstractmethod
 from typing import Callable
-from PIL import Image
-import pygame.surfarray as sa
+from  pygame import surfarray as sa, transform as tf, image as im
 import numpy as np
 from .mask import Mask
 
@@ -12,17 +11,17 @@ class FromArtAlpha(Mask):
 
     def __init__(self, art, index: int= 0) -> None:
 
-        super().__init__(art.width, art.height)
+        super().__init__()
         self.art = art
         self.index = index
 
-    def _load(self, **ld_kwargs):
+    def _load(self, width: int, height: int, **ld_kwargs):
         need_to_unload = False
         if not self.art.is_loaded:
             need_to_unload = True
             self.art.load(**ld_kwargs)
 
-        self.matrix = 1 - sa.array_alpha(self.art.surfaces[self.index])/255
+        self.matrix = 1 - sa.array_alpha(tf.scale(self.art.surfaces[self.index], (width, height)))/255
 
         if need_to_unload:
             self.art.unload()
@@ -36,18 +35,18 @@ class FromArtColor(Mask):
     """
 
     def __init__(self, art, function: Callable[[int, int, int], float], index: int = 0) -> None:
-        super().__init__(art.width, art.height)
+        super().__init__()
         self.art = art
         self.index = index
         self.map = function
 
-    def _load(self, **ld_kwargs):
+    def _load(self, width: int, height: int, **ld_kwargs):
         need_to_unload = False
         if not self.art.is_loaded:
             need_to_unload = True
             self.art.load(**ld_kwargs)
 
-        self.matrix = np.apply_along_axis(self.map, 2, sa.array2d(self.art.surfaces[self.index]))
+        self.matrix = np.apply_along_axis(self.map, 2, sa.array3d(tf.scale(self.art.surfaces[self.index], (width, height))))
 
         if need_to_unload:
             self.art.unload()
@@ -61,13 +60,11 @@ class FromImageColor(Mask):
 
     def __init__(self, path: str, function: Callable[[int, int, int], float]) -> None:
         self.path = path
-        self.im = Image.open(self.path)
-        width, height = self.im.size
-        super().__init__(width, height)
+        super().__init__()
         self.map = function
 
-    def _load(self, **ld_kwargs):
-        rgb_array = np.array(self.im.convert('RGB'))
+    def _load(self, width: int, height: int, **ld_kwargs):
+        rgb_array = sa.array3d(tf.scale(im.load(self.path), (width, height)))
         self.matrix = np.apply_along_axis(self.map, 2, rgb_array)
 
 class _MaskCombination(Mask, ABC):
@@ -75,19 +72,17 @@ class _MaskCombination(Mask, ABC):
 
     def __init__(self, *masks: Mask):
 
-        if any(mask.width != masks[0].width or mask.height != masks[0].height for mask in masks):
-            raise ValueError("All masks must have the same shape.")
-        super().__init__(masks[0].width, masks[0].height)
+        super().__init__()
         self.masks = masks
 
     @abstractmethod
     def _combine(self, *matrices: np.ndarray) -> np.ndarray:
         raise NotImplementedError()
 
-    def _load(self, **ld_kwargs):
+    def _load(self, width:int, height: int, **ld_kwargs):
         for mask in self.masks:
             if not mask.is_loaded():
-                mask.load(**ld_kwargs)
+                mask.load(width, height, **ld_kwargs)
 
         self._combine(*(mask.matrix for mask in self.masks))
 
@@ -152,12 +147,12 @@ class InvertedMask(Mask):
     """
 
     def __init__(self, mask: Mask):
-        super().__init__(mask.width, mask.height)
+        super().__init__()
         self._mask = mask
 
-    def _load(self, **ld_kwargs):
+    def _load(self, width:int, height: int, **ld_kwargs):
         if not self._mask.is_loaded():
-            self._mask.load(**ld_kwargs)
+            self._mask.load(width, height, **ld_kwargs)
         self.matrix = 1 - self._mask.matrix
 
 class TransformedMask(Mask):
@@ -167,13 +162,13 @@ class TransformedMask(Mask):
     """
 
     def __init__(self, mask: Mask, transformation: Callable[[float], float] | Callable[[np.ndarray], np.ndarray]):
-        super().__init__(mask.width, mask.height)
+        super().__init__()
         self._mask = mask
         self.transformation = transformation
 
-    def _load(self, **ld_kwargs):
+    def _load(self, width:int, height: int, **ld_kwargs):
         if not self._mask.is_loaded():
-            self._mask.load(**ld_kwargs)
+            self._mask.load(width, height, **ld_kwargs)
 
         self.matrix = np.clip(self.transformation(self._mask.matrix), 0, 1)
         if self.matrix.shape != self._mask.matrix.shape:
@@ -187,14 +182,14 @@ class BinaryMask(Mask):
     """
 
     def __init__(self, mask: Mask, threshold: float, reverse: bool = False):
-        super().__init__(mask.width, mask.height)
+        super().__init__()
         self.threshold = threshold
         self._mask = mask
         self.reverse = reverse
 
-    def _load(self, **ld_kwargs):
+    def _load(self, width:int, height: int, **ld_kwargs):
         if not self._mask.is_loaded():
-            self._mask.load(**ld_kwargs)
+            self._mask.load(width, height, **ld_kwargs)
 
         if self.reverse:
             positions_to_keep = self._mask.matrix < self.threshold
