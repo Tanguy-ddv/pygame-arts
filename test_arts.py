@@ -306,7 +306,27 @@ def see_masks2():
 
     loop(lambda loop_duration: update_and_show(loop_duration, arts, True), screen)
 
-from gamarts.mask import BinaryMask, BlitMaskOnMask, TransformedMask
+
+
+def see_masks3():
+    from gamarts import ImageFile
+    screen = init()
+    from gamarts.transform import ShiftHue, Resize
+    from gamarts.mask import BinaryMask, BlitMaskOnMask, TransformedMask, GradientCircle, Circle, DifferenceOfMasks
+    lenna = ImageFile("images/Lenna.png", Resize((200, 200)))
+
+    arts = [
+        lenna,
+        lenna.copy(ShiftHue(90, BinaryMask(GradientCircle(0.2, 0.4), 0.5))),
+        lenna.copy(ShiftHue(90, BlitMaskOnMask(GradientCircle(0.1, 0.5), Circle(0.1, (0.7, 0.7)), 0))),
+        lenna.copy(ShiftHue(90, TransformedMask(GradientCircle(0.1, 0.5), lambda matrix: matrix**2 + 0.05))),
+        lenna.copy(ShiftHue(90, DifferenceOfMasks(
+            Circle(0.1),
+            Circle(0.5),
+        ))),
+    ]
+
+    loop(lambda loop_duration: update_and_show(loop_duration, arts, True), screen)
 
 # see_transformations()
 # see_transformations2()
@@ -315,4 +335,5 @@ from gamarts.mask import BinaryMask, BlitMaskOnMask, TransformedMask
 # see_transformations5()
 # see_transformations6()
 # see_masks1()
-see_masks2()
+# see_masks2()
+see_masks3()

@@ -9,5 +9,8 @@ The fifth one is combinations or transformation of other masks.
 The last one is moving masks.
 """
 from .mask import Mask, MatrixMask, Circle, Ellipse, GradientCircle, GradientRectangle, Rectangle, RoundedRectangle, Polygon
-from .transformation import FromArtAlpha, FromArtColor, FromImageColor, SumOfMasks, ProductOfMasks, AverageOfMasks, BinaryMask, BlitMaskOnMask, InvertedMask, TransformedMask
+from .transformation import (
+    FromArtAlpha, FromArtColor, FromImageColor, SumOfMasks, ProductOfMasks, AverageOfMasks, DifferenceOfMasks,
+    BinaryMask, BlitMaskOnMask, InvertedMask, TransformedMask
+)
 

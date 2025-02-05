@@ -88,16 +88,23 @@ class _MaskCombination(Mask, ABC):
 
 class SumOfMasks(_MaskCombination):
     """
-    A sum of mask is a mask based on the sum of the matrixes of the masks, clamped between 0 and 1.
+    A sum of masks is a mask based on the sum of the matrixes of the masks, clamped between 0 and 1.
     For binary masks, it acts like union.
     """
 
     def _combine(self, *matrices):
         return np.clip(sum(matrices), 0, 1)
 
+class DifferenceOfMasks(_MaskCombination):
+    """
+    A difference of masks is a masked based on the difference between the matrixes of two masks, clamped between 0 and 1.
+    """
+    def _combine(self, matrix1, matrix2):
+        return matrix1 - matrix2
+
 class ProductOfMasks(_MaskCombination):
     """
-    A product of mask is a mask based on the product of the matrixes of the masks.
+    A product of masks is a mask based on the product of the matrixes of the masks.
     For binary masks, it acts like intersections.
     """
 
@@ -109,7 +116,7 @@ class ProductOfMasks(_MaskCombination):
 
 class AverageOfMasks(_MaskCombination):
     """
-    An average of mask is a mask based on the average of the matrixes of the masks.
+    An average of masks is a mask based on the average of the matrixes of the masks.
     """
 
     def __init__(self, *masks: Mask, weights= None):
@@ -129,21 +136,23 @@ class AverageOfMasks(_MaskCombination):
 class BlitMaskOnMask(_MaskCombination):
     """
     A blit mask on mask is a mask where the values of the background below (or above) a given threshold are replaced
-    by the values on the foreground.
+    by the values on the foreground that are below a given threshold.
     """
 
-    def __init__(self, background: Mask, foreground: Mask, threshold: float = 0, reverse: bool = False):
+    def __init__(self, background: Mask, foreground: Mask, bg_threshold: float = 0, fg_threshold: float = 0.5, reverse: bool = False):
         super().__init__(background, foreground)
-        self.threshold = threshold
+        self.bg_threshold = bg_threshold
+        self.fg_threshold = fg_threshold
         self.reverse = reverse
     #pylint: disable=arguments-differ
     def _combine(self, background_matrix, foreground_matrix) -> np.ndarray:
-        self.matrix = background_matrix
+        matrix = background_matrix
         if self.reverse:
-            positions_to_keep = background_matrix < self.threshold
+            positions_to_keep = (background_matrix < self.bg_threshold) & (foreground_matrix < self.fg_threshold)
         else:
-            positions_to_keep = background_matrix > self.threshold
-        self.matrix[positions_to_keep] = foreground_matrix[positions_to_keep]
+            positions_to_keep = (background_matrix > self.bg_threshold) & (foreground_matrix < self.fg_threshold)
+        matrix[positions_to_keep] = foreground_matrix[positions_to_keep]
+        return matrix
 
 class InvertedMask(Mask):
     """
