@@ -251,7 +251,7 @@ def see_transformations6():
 
     loop(lambda loop_duration: update_and_show(loop_duration, arts, True), screen)
 
-def see_masks():
+def see_masks1():
     from gamarts import ImageFile
     screen = init()
     from gamarts.transform import ShiftHue, Resize
@@ -275,6 +275,38 @@ def see_masks():
 
     loop(lambda loop_duration: update_and_show(loop_duration, arts, True), screen)
 
+def see_masks2():
+    from gamarts import ImageFile
+    screen = init()
+    from gamarts.transform import ShiftHue, Resize
+    from gamarts.mask import GradientCircle, Circle, Rectangle, InvertedMask, FromArtAlpha, FromArtColor, FromImageColor, SumOfMasks, ProductOfMasks, AverageOfMasks
+    from ZOCallable.functions import ease_in
+    lenna = ImageFile("images/Lenna.png", Resize((200, 200)))
+
+    arts = [
+        lenna,
+        lenna.copy(ShiftHue(90, InvertedMask(Circle(0.6)))),
+        lenna.copy(ShiftHue(90, FromArtColor(lenna, lambda r,g,b: (255 + b + g - r)/767))),
+        lenna.copy(ShiftHue(90, FromArtAlpha(ImageFile("images/Lenna_alpha.png", Resize((200, 200)))))),
+        lenna.copy(ShiftHue(90, FromImageColor("images/Lenna.png", lambda r,g,b: (255 + b + g - r)/767))),
+        lenna.copy(ShiftHue(90, SumOfMasks(
+            Rectangle(0.1, 0.1, 0.9, 0.9),
+            InvertedMask(Rectangle(0.5, 0.5, 0.6, 0.6))
+        ))),
+        lenna.copy(ShiftHue(90, ProductOfMasks(
+           Circle(0.1, (0.2, 0.2)),
+           Circle(0.1, (0.5, 0.5)),
+           Circle(0.1, (0.8, 0.8)) 
+        ))),
+        lenna.copy(ShiftHue(90, AverageOfMasks(
+            GradientCircle(0.1, 0.4, center=(0.2, 0.2)),
+            GradientCircle(0.1, 0.4, center=(0.8, 0.8))
+        )))
+    ]
+
+    loop(lambda loop_duration: update_and_show(loop_duration, arts, True), screen)
+
+from gamarts.mask import BinaryMask, BlitMaskOnMask, TransformedMask
 
 # see_transformations()
 # see_transformations2()
@@ -282,4 +314,5 @@ def see_masks():
 # see_transformations4()
 # see_transformations5()
 # see_transformations6()
-see_masks()
+# see_masks1()
+see_masks2()

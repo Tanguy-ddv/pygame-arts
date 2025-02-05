@@ -21,7 +21,7 @@ class FromArtAlpha(Mask):
             need_to_unload = True
             self.art.load(**ld_kwargs)
 
-        self.matrix = 1 - sa.array_alpha(tf.scale(self.art.surfaces[self.index], (width, height)))/255
+        self.matrix = 1 - sa.array_alpha(tf.scale(self.art.surfaces[self.index], (width, height))).astype(np.int64)/255
 
         if need_to_unload:
             self.art.unload()
@@ -46,7 +46,7 @@ class FromArtColor(Mask):
             need_to_unload = True
             self.art.load(**ld_kwargs)
 
-        self.matrix = np.apply_along_axis(self.map, 2, sa.array3d(tf.scale(self.art.surfaces[self.index], (width, height))))
+        self.matrix = np.apply_along_axis(lambda t: self.map(*t), 2, sa.array3d(tf.scale(self.art.surfaces[self.index], (width, height))).astype(np.int64))
 
         if need_to_unload:
             self.art.unload()
@@ -65,7 +65,7 @@ class FromImageColor(Mask):
 
     def _load(self, width: int, height: int, **ld_kwargs):
         rgb_array = sa.array3d(tf.scale(im.load(self.path), (width, height)))
-        self.matrix = np.apply_along_axis(self.map, 2, rgb_array)
+        self.matrix = np.apply_along_axis(lambda t: self.map(*t), 2, rgb_array.astype(np.int64))
 
 class _MaskCombination(Mask, ABC):
     """MaskCombinations are abstract class for all mask combinations: sum, products and average"""
@@ -84,7 +84,7 @@ class _MaskCombination(Mask, ABC):
             if not mask.is_loaded():
                 mask.load(width, height, **ld_kwargs)
 
-        self._combine(*(mask.matrix for mask in self.masks))
+        self.matrix = self._combine(*(mask.matrix for mask in self.masks))
 
 class SumOfMasks(_MaskCombination):
     """
@@ -93,7 +93,7 @@ class SumOfMasks(_MaskCombination):
     """
 
     def _combine(self, *matrices):
-        return np.minimum(np.sum(matrices), 1)
+        return np.clip(sum(matrices), 0, 1)
 
 class ProductOfMasks(_MaskCombination):
     """
@@ -102,7 +102,10 @@ class ProductOfMasks(_MaskCombination):
     """
 
     def _combine(self, *matrices):
-        return np.prod(matrices)
+        prod = 1
+        for mat in matrices:
+            prod*=mat
+        return prod
 
 class AverageOfMasks(_MaskCombination):
     """
@@ -116,11 +119,12 @@ class AverageOfMasks(_MaskCombination):
         self.weights = weights
 
     def _combine(self, *matrices):
-        self.matrix = 0
+        avg = 0
         for matrix, weight in zip(matrices, self.weights):
-            self.matrix += matrix*weight
+            avg += matrix*weight
 
-        self.matrix /= sum(self.weights)
+        avg /= sum(self.weights)
+        return avg
 
 class BlitMaskOnMask(_MaskCombination):
     """
