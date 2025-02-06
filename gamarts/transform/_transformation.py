@@ -29,20 +29,26 @@ class Transformation(ABC):
         """Return whether the transformation requires to parallelize the calculations."""
         return False
 
+    def __len__(self):
+        return 1
+
 class Pipeline(Transformation):
     """A Transformation pipeline is a list of successive transformations."""
 
     def __init__(self, *transfos) -> None:
         super().__init__()
-        self._transformations: list[Transformation] = list(transfos)
-    
+        self._transformations: list[Transformation] = list(transfos).copy()
+
     def add_transformation(self, transfo: Transformation) -> None:
         """Add a new transformation in the pipeline."""
         self._transformations.append(transfo)
-    
+
     def clear(self):
         """Clear the Pipeline from all transformations."""
         self._transformations.clear()
+    
+    def __len__(self):
+        return sum(len(transfo) for transfo in self._transformations)
     
     def is_empty(self) -> bool:
         """Return True if the Pipeline is empty of transformations."""
@@ -69,6 +75,9 @@ class Pipeline(Transformation):
     def require_parallelization(self, **ld_kwargs):
         """Return whether the transformation requires to parallelize the calculations."""
         return any(transfo.require_parallelization(**ld_kwargs) for transfo in self._transformations)
+    
+    def copy(self):
+        return Pipeline(*self._transformations)
 
 class Rotate(Transformation):
     """The rotate transformation will rotate the art by a given angle."""

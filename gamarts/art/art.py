@@ -169,12 +169,14 @@ class Art(ABC):
             not self._buffer_transfo_pipeline.is_empty()
             and (self._transfo_thread is None or not self._transfo_thread.is_alive())
         ): # Apply a transformation only if the last thread is finished
-            if self._buffer_transfo_pipeline.require_parallelization(): # On a separate thread, in this case the transformation may be visible later.
-                self._transfo_thread = Thread(target=self._transform, args=(self._buffer_transfo_pipeline,), kwargs=ld_kwargs)
-                self._transfo_thread.start()
+            if self._buffer_transfo_pipeline.require_parallelization():
+                args = self._buffer_transfo_pipeline.copy(), # On a separate thread, in this case the transformation may be visible later.
                 self._buffer_transfo_pipeline.clear()
+                self._transfo_thread = Thread(target=self._transform, args=args, kwargs=ld_kwargs)
+                self._transfo_thread.start()
             else:
                 self._transform(self._buffer_transfo_pipeline, **ld_kwargs) # Or directly on the main thread.
+                self._buffer_transfo_pipeline.clear()
 
         index = self._index if match is None else match.index
         return self.surfaces[index].copy() # The current surface
@@ -201,7 +203,6 @@ class Art(ABC):
                 self._height,
                 **ld_kwargs
             )
-            print(self._index, index)
             if index is not None:
                 self._index = index
             self._buffer_transfo_pipeline.clear()
