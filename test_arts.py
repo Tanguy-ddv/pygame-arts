@@ -306,8 +306,6 @@ def see_masks2():
 
     loop(lambda loop_duration: update_and_show(loop_duration, arts, True), screen)
 
-
-
 def see_masks3():
     from gamarts import ImageFile
     screen = init()
@@ -336,4 +334,40 @@ def see_masks3():
 # see_transformations6()
 # see_masks1()
 # see_masks2()
-see_masks3()
+# see_masks3()
+
+def see_reference():
+    from gamarts import GIFFile
+    screen = init()
+    from gamarts.transform import ShiftHue, Resize
+    earth = GIFFile("images/wikipedia_earth.gif", Resize((200, 200)))
+    ref = earth.reference()
+    earth.start()
+    ref.start()
+    ld_kwargs = {'antialias' : True}
+    running = True
+    clock = pygame.time.Clock()
+    pressed = False
+    while running:
+        loop_duration = clock.tick(100)
+        earth.update(loop_duration)
+        ref.update(loop_duration*4/5) # to see the independance between both
+        screen.blit(earth.get(**ld_kwargs), (0, 0))
+        screen.blit(ref.get(**ld_kwargs), (200, 200))
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            elif event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE and not pressed:
+                earth.transform(ShiftHue(50))
+                pressed = True
+            elif event.type == pygame.KEYDOWN and event.key == pygame.K_BACKSPACE and not pressed:
+                ref.transform(ShiftHue(-50))
+                pressed = True
+            else:
+                pressed = False
+        pygame.display.flip()
+    earth.unload()
+    ref.unload()
+    pygame.quit()
+    
+see_reference()

@@ -31,7 +31,7 @@ class SetAlpha(Transformation):
                 alpha_array = sa.pixels_alpha(surf)
                 alpha_array[:] = (1 - self.mask.matrix)*255
 
-        return surfaces, durations, introduction, index, width, height
+        return surfaces, durations, introduction, None, width, height
     
     def require_parallelization(self, **ld_kwargs):
         # If the mask is None, setting alpha is straight_forward. Otherwise, it required copying data.
@@ -44,7 +44,7 @@ class GrayScale(Transformation):
 
     def apply(self, surfaces: tuple[Surface], durations: tuple[int], introduction: int, index: int, width: int, height: int, **ld_kwargs):
         graysurfeaces = tuple(tf.grayscale(surf) for surf in surfaces)
-        return graysurfeaces, durations, introduction, index, width, height
+        return graysurfeaces, durations, introduction, None, width, height
 
 class _MatrixTransformation(Transformation):
     """Matrix transformations are bases for all transformation transforming the matrix with an effect."""
@@ -74,7 +74,7 @@ class RBGMap(_MatrixTransformation):
                     self.mask.load(width, height, **ld_kwargs)
                 rgb_array[self.mask.matrix > self.mask_threshold] = np.clip(np.apply_along_axis(lambda t: self.function(*t), 2, rgb_array), 0, 255).astype(np.int8)[self.mask.matrix > self.mask_threshold]
 
-        return surfaces, durations, introduction, index, width, height
+        return surfaces, durations, introduction, None, width, height
     
 class RGBAMap(_MatrixTransformation):
     """
@@ -111,7 +111,7 @@ class RGBAMap(_MatrixTransformation):
                 rgb_array[:, :, 2][mask] = new_b[mask]
                 alpha_array[mask] = new_a[mask]
 
-        return surfaces, durations, introduction, index, width, height
+        return surfaces, durations, introduction, None, width, height
 
 class Saturate(_MatrixTransformation):
     """Saturate the art by a given factor."""
@@ -130,7 +130,7 @@ class Saturate(_MatrixTransformation):
         for surf in surfaces:
             saturate(surf, factor)
 
-        return surfaces, durations, introduction, index, width, height
+        return surfaces, durations, introduction, None, width, height
     
 class Desaturate(_MatrixTransformation):
     """Desaturate the art by a given factor."""
@@ -149,7 +149,7 @@ class Desaturate(_MatrixTransformation):
         for surf in surfaces:
             desaturate(surf, factor)
 
-        return surfaces, durations, introduction, index, width, height
+        return surfaces, durations, introduction, None, width, height
     
 class Darken(_MatrixTransformation):
     """Darken the art by a given factor."""
@@ -168,7 +168,7 @@ class Darken(_MatrixTransformation):
         for surf in surfaces:
             darken(surf, factor)
 
-        return surfaces, durations, introduction, index, width, height
+        return surfaces, durations, introduction, None, width, height
 
 class Lighten(_MatrixTransformation):
     """Lighten the art by a given factor."""
@@ -187,7 +187,7 @@ class Lighten(_MatrixTransformation):
         for surf in surfaces:
             lighten(surf, factor)
 
-        return surfaces, durations, introduction, index, width, height
+        return surfaces, durations, introduction, None, width, height
 
 class ShiftHue(_MatrixTransformation):
     """Shift the hue of all surface of the art by a given value."""
@@ -206,7 +206,7 @@ class ShiftHue(_MatrixTransformation):
         for surf in surfaces:
             shift_hue(surf, value)
 
-        return surfaces, durations, introduction, index, width, height
+        return surfaces, durations, introduction, None, width, height
 
 class Invert(_MatrixTransformation):
     """Invert the color of the art."""
@@ -225,7 +225,7 @@ class Invert(_MatrixTransformation):
                 if not self.mask.is_loaded():
                     self.mask.load(width, height, **ld_kwargs)
                 rgb_array[self.mask.matrix > self.mask_threshold] = 255 - rgb_array[self.mask.matrix > self.mask_threshold]
-        return surfaces, durations, introduction, index, width, height
+        return surfaces, durations, introduction, None, width, height
 
 class AdjustContrast(_MatrixTransformation):
     """Change the contrast of an art. The constrast is a value between -255 and +255."""
@@ -247,7 +247,7 @@ class AdjustContrast(_MatrixTransformation):
                 rgb_array[self.mask.matrix > self.mask_threshold] = np.clip(
                     (self.factor * (rgb_array - 128) + 128).astype(int), 0, 255)[self.mask.matrix > self.mask_threshold]
 
-        return surfaces, durations, introduction, index, width, height
+        return surfaces, durations, introduction, None, width, height
 
 class AddBrightness(_MatrixTransformation):
     """Change the brightness of an art. The brightness is a value between -255 and +255."""
@@ -267,7 +267,7 @@ class AddBrightness(_MatrixTransformation):
                 if not self.mask.is_loaded():
                     self.mask.load(width, height, **ld_kwargs)
                 rgb_array[self.mask.matrix > self.mask_threshold] = np.clip(rgb_array + self.brightness, 0, 255)[self.mask.matrix > self.mask_threshold]
-        return surfaces, durations, introduction, index, width, height
+        return surfaces, durations, introduction, None, width, height
 
 class Gamma(_MatrixTransformation):
     """
@@ -293,4 +293,4 @@ class Gamma(_MatrixTransformation):
                 rgb_array[self.mask.matrix > self.mask_threshold] = np.clip(
                     ((rgb_array/255)**self.gamma * 255).astype(int), 0, 255)[self.mask.matrix > self.mask_threshold]
 
-        return surfaces, durations, introduction, index, width, height
+        return surfaces, durations, introduction, None, width, height

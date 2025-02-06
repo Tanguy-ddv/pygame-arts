@@ -49,9 +49,17 @@ class Pipeline(Transformation):
         return not bool(self._transformations)
 
     def apply(self, surfaces: tuple[Surface], durations: tuple[int], introduction: int, index: int, width: int, height: int, **ld_kwargs):
+        successive_indices = []
         for transfo in self._transformations:
-            surfaces, durations, introduction, index, width, height = transfo.apply(surfaces, durations, introduction, index, width, height, **ld_kwargs)
-        return surfaces, durations, introduction, index, width, height
+            surfaces, durations, introduction, idx, width, height = transfo.apply(surfaces, durations, introduction, index, width, height, **ld_kwargs)
+            if idx is not None:
+                index = idx
+            successive_indices.append(idx)
+        # Find the last not None index. If there is no, we return None
+        for idx in successive_indices[::-1]:
+            if idx is not None:
+                break
+        return surfaces, durations, introduction, idx, width, height
 
     def get_new_dimension(self, width, height):
         for transfo in self._transformations:
@@ -71,7 +79,7 @@ class Rotate(Transformation):
 
     def apply(self, surfaces: tuple[Surface], durations: tuple[int], introduction: int, index: int, width: int, height: int, **ld_kwargs):
         rotated_surfaces = tuple(tf.rotate(surf, self.angle) for surf in surfaces)
-        return rotated_surfaces, durations, introduction, index, *rotated_surfaces[0].get_size()
+        return rotated_surfaces, durations, introduction, None, *rotated_surfaces[0].get_size()
 
     def get_new_dimension(self, width, height):
         radians_angle = radians(self.angle)
@@ -104,7 +112,7 @@ class Zoom(Transformation):
             rescaled_surfaces = tuple(tf.scale_by(surf, self.scale) for surf in surfaces)
         else:
             rescaled_surfaces = tuple(tf.smoothscale_by(surf, self.scale) for surf in surfaces)
-        return rescaled_surfaces, durations, introduction, index, int(width*self.scale), int(height*self.scale)
+        return rescaled_surfaces, durations, introduction, None, int(width*self.scale), int(height*self.scale)
 
     def get_new_dimension(self, width, height):
         return int(width*self.scale), int(height*self.scale)
@@ -129,7 +137,7 @@ class Resize(Transformation):
             rescaled_surfaces = tuple(tf.smoothscale(surf, self.size) for surf in surfaces)
         else:
             rescaled_surfaces = tuple(tf.scale(surf, self.size) for surf in surfaces)
-        return rescaled_surfaces, durations, introduction, index, *self.size
+        return rescaled_surfaces, durations, introduction, None, *self.size
 
     def get_new_dimension(self, width, height):
         return self.size
@@ -154,7 +162,7 @@ class Crop(Transformation):
         for surf in surfaces:
             background.blit(surf, (0,0), self.rect)
             cropped_surfaces.append(background.copy())
-        return tuple(cropped_surfaces), durations, introduction, index, *self.rect.size
+        return tuple(cropped_surfaces), durations, introduction, None, *self.rect.size
 
     def get_new_dimension(self, width, height):
         return self.rect.size
@@ -179,7 +187,7 @@ class Pad(Transformation):
         for surf in surfaces:
             background.blit(surf, (self.left, self.top))
             padded_surfaces.append(background.copy())
-        return tuple(padded_surfaces), durations, introduction, index, width + self.left + self.right, height + self.left + self.right
+        return tuple(padded_surfaces), durations, introduction, None, width + self.left + self.right, height + self.left + self.right
 
     def get_new_dimension(self, width, height):
         return width + self.left + self.right, height + self.left + self.right
@@ -196,7 +204,7 @@ class Flip(Transformation):
 
     def apply(self, surfaces: tuple[Surface], durations: tuple[int], introduction: int, index: int, width: int, height: int, **ld_kwargs):
         flipped_surfaces = tuple(tf.flip(surf, self.horizontal, self.vertical) for surf in surfaces)
-        return flipped_surfaces, durations, introduction, index, height, width
+        return flipped_surfaces, durations, introduction, None, height, width
 
     def get_new_dimension(self, width, height):
         return width, height
@@ -206,7 +214,7 @@ class Transpose(Transformation):
 
     def apply(self, surfaces: tuple[Surface], durations: tuple[int], introduction: int, index: int, width: int, height: int, **ld_kwargs):
         tp_surfaces = tuple(tf.flip(tf.rotate(surf, 270), True, False) for surf in surfaces)
-        return tp_surfaces, durations, introduction, index, width, height
+        return tp_surfaces, durations, introduction, None, width, height
 
     def get_new_dimension(self, width, height):
         return height, width
@@ -222,7 +230,7 @@ class VerticalChop(Transformation):
 
     def apply(self, surfaces: tuple[Surface], durations: tuple[int], introduction: int, index: int, width: int, height: int, **ld_kwargs):
         chopped_surfaces = tuple(tf.chop(surf, self.rect) for surf in surfaces)
-        return chopped_surfaces, durations, introduction, index, width - self.rect[2], height
+        return chopped_surfaces, durations, introduction, None, width - self.rect[2], height
 
     def get_new_dimension(self, width, height):
         return width - self.rect[2], height
@@ -238,7 +246,7 @@ class HorizontalChop(Transformation):
 
     def apply(self, surfaces: tuple[Surface], durations: tuple[int], introduction: int, index: int, width: int, height: int, **ld_kwargs):
         chopped_surfaces = tuple(tf.chop(surf, self.rect) for surf in surfaces)
-        return chopped_surfaces, durations, introduction, index, width, height - self.rect[3]
+        return chopped_surfaces, durations, introduction, None, width, height - self.rect[3]
 
     def get_new_dimension(self, width, height):
         return width, height - self.rect[3]
@@ -258,7 +266,7 @@ class SpeedUp(Transformation):
 
     def apply(self, surfaces: tuple[Surface], durations: tuple[int], introduction: int, index: int, width: int, height: int, **ld_kwargs):
         new_durations = tuple(d/self.scale for d in durations)
-        return surfaces, new_durations, introduction, index, width, height
+        return surfaces, new_durations, introduction, None, width, height
 
 class SlowDown(Transformation):
     """
@@ -275,7 +283,7 @@ class SlowDown(Transformation):
 
     def apply(self, surfaces: tuple[Surface], durations: tuple[int], introduction: int, index: int, width: int, height: int, **ld_kwargs):
         new_durations = tuple(d*self.scale for d in durations)
-        return surfaces, new_durations, introduction, index, width, height
+        return surfaces, new_durations, introduction, None, width, height
 
 class ResetDuration(Transformation):
     """
@@ -287,7 +295,7 @@ class ResetDuration(Transformation):
         self.new_duration = new_duration
 
     def apply(self, surfaces: tuple[Surface], durations: tuple[int], introduction: int, index: int, width: int, height: int, **ld_kwargs):
-        return surfaces, tuple(self.new_duration for _ in durations), introduction, index, width, height
+        return surfaces, tuple(self.new_duration for _ in durations), introduction, None, width, height
 
 class ResetDurations(Transformation):
     """
@@ -299,7 +307,7 @@ class ResetDurations(Transformation):
         self.new_durations = new_durations
 
     def apply(self, surfaces: tuple[Surface], durations: tuple[int], introduction: int, index: int, width: int, height: int, **ld_kwargs):
-        return surfaces, tuple(self.new_durations[i%len(self.new_durations)] for i, _ in enumerate(durations)), introduction, index, width, height
+        return surfaces, tuple(self.new_durations[i%len(self.new_durations)] for i, _ in enumerate(durations)), introduction, None, width, height
 
 class SetIntroductionIndex(Transformation):
     """
@@ -310,7 +318,7 @@ class SetIntroductionIndex(Transformation):
         self.introduction = introduction
 
     def apply(self, surfaces: tuple[Surface], durations: tuple[int], introduction: int, index: int, width: int, height: int, **ld_kwargs):
-        return surfaces, durations, self.introduction, index, width, height
+        return surfaces, durations, self.introduction, None, width, height
 
 class SetIntroductionTime(Transformation):
     """
@@ -328,7 +336,7 @@ class SetIntroductionTime(Transformation):
             sum_dur += durations[new_intro_idx]
             new_intro_idx += 1
 
-        return surfaces, durations, new_intro_idx, index, width, height
+        return surfaces, durations, new_intro_idx, None, width, height
 
 def _index_here(index, thelen, introduction):
     if index <= thelen:

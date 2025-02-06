@@ -25,7 +25,7 @@ class Concatenate(Transformation):
             if need_to_unload:
                 other.unload()
 
-        return surfaces, durations, introduction, index, width, height
+        return surfaces, durations, introduction, None, width, height
 
 def _combine_arts(*durations: tuple[int], introduction: int) -> tuple[list[tuple[int, tuple[int]]], int]:
     """Combine a list of durations to create a new art."""
@@ -87,7 +87,7 @@ class Average(Transformation):
             if need_to_unload:
                 other.unload()
 
-        return new_surfaces, new_durations, introduction, index, width, height
+        return new_surfaces, new_durations, introduction, None, width, height
 
 class Blit(Transformation):
     """
@@ -117,4 +117,4 @@ class Blit(Transformation):
         if need_to_unload:
             self.other.unload()
 
-        return new_surfaces, new_durations, introduction, index, width, height
+        return new_surfaces, new_durations, introduction, None, width, height

@@ -35,7 +35,7 @@ class Rectangle(Art):
         rect = (self.thickness//2, self.thickness//2, self._initial_width - self.thickness, self.initial_height - self.thickness)
         rectangle(surf, rect, self.color, self.thickness)
         self.surfaces = (surf,)
-        self.durations = (0,)
+        self._durations = (0,)
 
 class RoundedRectangle(Art):
     """A RoundedRectangle is an Art with a rounded rectangle inside."""
@@ -76,8 +76,8 @@ class RoundedRectangle(Art):
         rect = (self.thickness//2, self.thickness//2, self._initial_width - self.thickness, self.initial_height - self.thickness)
         rounded_rectangle(surf, rect, self.color, self.thickness, ld_kwargs.get("antialias", False) and self.allow_antialias,
                           self.top_left, self.top_right, self.bottom_left, self.bottom_right)
-        self.surfaces = (surf,)
-        self.durations = (0,)
+        self._surfaces = (surf,)
+        self._durations = (0,)
 
 class Circle(Art):
     """A Circle is an Art with a colored circle at the center of it."""
@@ -115,8 +115,8 @@ class Circle(Art):
             circle(surf, (self.radius, self.radius), self.radius, self.color,
                 0, ld_kwargs.get("antialias", False) and self.allow_antialias)
 
-        self.surfaces = (surf,)
-        self.durations = (0,)
+        self._surfaces = (surf,)
+        self._durations = (0,)
 
 class Ellipse(Art):
     """An Ellipse is an Art with a colored ellipse at the center."""
@@ -153,8 +153,8 @@ class Ellipse(Art):
             ellipse(surf, (self.radius_x, self.radius_y), radius_x, radius_y, self.color, self.thickness, ld_kwargs.get("antialias", False) and self.allow_antialias, 0)
         else:
             ellipse(surf, (self.radius_x, self.radius_y), self.radius_x, self.radius_y, self.color, 0, ld_kwargs.get("antialias", False) and self.allow_antialias, 0)
-        self.surfaces = (surf,)
-        self.durations = (0,)
+        self._surfaces = (surf,)
+        self._durations = (0,)
 
 class Polygon(Art):
     """A Polygon is an Art with a colored polygon at the center."""
@@ -194,8 +194,8 @@ class Polygon(Art):
             surf.fill((*self.background_color[:3], 0))
         polygon(surf, self.points, self.color, self.thickness, ld_kwargs.get("antialias", False) and self.allow_antialias)
 
-        self.surfaces = (surf,)
-        self.durations = (0,)
+        self._surfaces = (surf,)
+        self._durations = (0,)
 
 class TexturedPolygon(Art):
     """A Textured polygon is a polygon filled with an art as texture."""
@@ -242,8 +242,8 @@ class TexturedPolygon(Art):
             gfxdraw.textured_polygon(background, self.points, surf, *self.texture_top_left)
             surfaces.append(background)
 
-        self.surfaces = tuple(surfaces)
-        self.durations = self.texture.durations
+        self._surfaces = tuple(surfaces)
+        self._durations = self.texture.durations
         self.introduction = self.texture.introduction
 
         if need_to_unload:
@@ -296,8 +296,8 @@ class TexturedCircle(Art):
         draw.circle(surf, (255, 255, 255, 255), self.center,
             self.radius, 0, self.draw_top_right, self.draw_top_left, self.draw_bottom_left, self.draw_bottom_right)
         mask = msk.from_surface(surf, 127)
-        self.surfaces = tuple(mask.to_surface(setsurface=surface.convert_alpha(), unsetsurface=surf) for surface in self.texture.surfaces)
-        self.durations = self.texture.durations
+        self._surfaces = tuple(mask.to_surface(setsurface=surface.convert_alpha(), unsetsurface=surf) for surface in self.texture.surfaces)
+        self._durations = self.texture.durations
 
         if need_to_unload:
             self.texture.unload()
@@ -340,8 +340,8 @@ class TexturedEllipse(Art):
         surf = Surface((self._width, self._height), SRCALPHA)
         draw.ellipse(surf, (255, 255, 255, 255), self.rect, 0)
         mask = msk.from_surface(surf, 127)
-        self.surfaces = tuple(mask.to_surface(setsurface=surface.convert_alpha(), unsetsurface=surf) for surface in self.texture.surfaces)
-        self.durations = self.texture.durations
+        self._surfaces = tuple(mask.to_surface(setsurface=surface.convert_alpha(), unsetsurface=surf) for surface in self.texture.surfaces)
+        self._durations = self.texture.durations
 
         if need_to_unload:
             self.texture.unload()
@@ -391,8 +391,8 @@ class TexturedRoundedRectangle(Art):
             self.bottom_right
         )
         mask = msk.from_surface(surf, 127)
-        self.surfaces = tuple(mask.to_surface(setsurface=surface.convert_alpha(), unsetsurface=surf) for surface in self.texture.surfaces)
-        self.durations = self.texture.durations
+        self._surfaces = tuple(mask.to_surface(setsurface=surface.convert_alpha(), unsetsurface=surf) for surface in self.texture.surfaces)
+        self._durations = self.texture.durations
 
         if need_to_unload:
             self.texture.unload()

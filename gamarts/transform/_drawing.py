@@ -1,5 +1,5 @@
 from typing import Sequence
-from pygame import Surface, gfxdraw, Rect, Color
+from pygame import Surface, Rect, Color
 from pygamecv import rectangle, line, lines, polygon, circle, ellipse, pie, arc, rounded_rectangle
 from ._transformation import Transformation
 
@@ -26,7 +26,7 @@ class DrawCircle(Transformation):
         antialias = self.allow_antialias and ld_kwargs.get("antialias", False)
         for surf in surfaces:
             circle(surf, self.center, self.radius, self.color, self.thickness, antialias)
-        return surfaces, durations, introduction, index, width, height
+        return surfaces, durations, introduction, None, width, height
 
 class DrawRectangle(Transformation):
     """Draw a rectangle on the art."""
@@ -46,7 +46,7 @@ class DrawRectangle(Transformation):
     def apply(self, surfaces: tuple[Surface], durations: tuple[int], introduction: int, index: int, width: int, height: int, **ld_kwargs):
         for surf in surfaces:
             rectangle(surf, self.rect, self.color, self.thickness)
-        return surfaces, durations, introduction, index, width, height
+        return surfaces, durations, introduction, None, width, height
 
 class DrawRoundedRectantle(Transformation):
     """Draw a rectangle on the art, with rounded corners."""
@@ -75,7 +75,7 @@ class DrawRoundedRectantle(Transformation):
         antialias = self.allow_antialias and ld_kwargs.get("antialias", False)
         for surf in surfaces:
             rounded_rectangle(surf, self.rect, self.color, self.thickness, antialias, self.top_left, self.top_right, self.bottom_left, self.bottom_right)
-        return surfaces, durations, introduction, index, width, height
+        return surfaces, durations, introduction, None, width, height
 
 class DrawEllipse(Transformation):
     """Draw an ellipse on the art."""
@@ -102,7 +102,7 @@ class DrawEllipse(Transformation):
         antialias = self.allow_antialias and ld_kwargs.get("antialias", False)
         for surf in surfaces:
             ellipse(surf, self.center, self.x_radius, self.y_radius, self.color, self.thickness, antialias, self.angle)
-        return surfaces, durations, introduction, index, width, height
+        return surfaces, durations, introduction, None, width, height
 
 class DrawPolygon(Transformation):
     """Draw a polygon on the art."""
@@ -125,7 +125,7 @@ class DrawPolygon(Transformation):
         antialias = self.allow_antialias and ld_kwargs.get("antialias", False)
         for surf in surfaces:
             polygon(surf, self.points, self.color, self.thickness, antialias)
-        return surfaces, durations, introduction, index, width, height
+        return surfaces, durations, introduction, None, width, height
 
 class DrawLine(Transformation):
     """Draw one line on the art."""
@@ -142,7 +142,7 @@ class DrawLine(Transformation):
         antialias = self.allow_antialias and ld_kwargs.get("antialias", False)
         for surf in surfaces:
             line(surf, self.p1, self.p2, self.color, self.thickness, antialias)
-        return surfaces, durations, introduction, index, width, height
+        return surfaces, durations, introduction, None, width, height
 
 class DrawLines(Transformation):
     """Draw lines on the art."""
@@ -159,7 +159,7 @@ class DrawLines(Transformation):
         antialias = self.allow_antialias and ld_kwargs.get("antialias", False)
         for surf in surfaces:
             lines(surf, self.points, self.color, self.thickness, antialias, self.closed)
-        return surfaces, durations, introduction, index, width, height
+        return surfaces, durations, introduction, None, width, height
 
 class DrawArc(Transformation):
     """Draw an arc on the art."""
@@ -193,7 +193,7 @@ class DrawArc(Transformation):
         for surf in surfaces:
             arc(surf, self.ellipsis_center, self.rx, self.ry, self.color, self.thickness, antialias, self.angle, self.from_angle, self.to_angle)
 
-        return surfaces, durations, introduction, index, width, height
+        return surfaces, durations, introduction, None, width, height
 
 class DrawPie(Transformation):
     """Draw an arc on the art."""
@@ -226,4 +226,4 @@ class DrawPie(Transformation):
         antialias = self.allow_antialias and ld_kwargs.get("antialias", False)
         for surf in surfaces:
             pie(surf, self.ellipsis_center, self.rx, self.ry, self.color, self.thickness, antialias, self.angle, self.from_angle, self.to_angle)
-        return surfaces, durations, introduction, index, width, height
+        return surfaces, durations, introduction, None, width, height

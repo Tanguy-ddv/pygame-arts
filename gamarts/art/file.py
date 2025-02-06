@@ -26,8 +26,8 @@ class ImageFile(Art):
         self._find_initial_dimension()
 
     def _load(self, **ld_kwargs):
-        self.surfaces = (load(self.full_path),)
-        self.durations = (0,)
+        self._surfaces = (load(self.full_path),)
+        self._durations = (0,)
 
 class ImageFolder(Art):
     """
@@ -71,19 +71,19 @@ class ImageFolder(Art):
         self._find_initial_dimension()
 
     def _load(self, **ld_kwargs):
-        self.surfaces = tuple(load(path) for path in self._paths)
+        self._surfaces = tuple(load(path) for path in self._paths)
         if self._introduction > len(self._paths):
             raise ValueError(
                 f"The introduction specified for this ImageFolder is too high, got {self._introduction} while there is only {len(self.surfaces)} images."
             )
         if isinstance(self.durs, int):
-            self.durations = tuple(self.durs for _ in self._paths)
+            self._durations = tuple(self.durs for _ in self._paths)
         else:
             if len(self.durs) != len(self._paths):
                 raise ValueError(
                     f"The length of the durations list ({len(self.durs)}) does not match the len of the number of images ({len(self.surfaces)})"
                 )
-            self.durations = tuple(self.durs)
+            self._durations = tuple(self.durs)
         self._verify_sizes()
 
 class GIFFile(Art):
@@ -119,8 +119,8 @@ class GIFFile(Art):
                 image_durations.append(gif.info['duration'])
             except EOFError:
                 break
-        self.surfaces = tuple(images)
-        self.durations = tuple(image_durations)
+        self._surfaces = tuple(images)
+        self._durations = tuple(image_durations)
 
         if self._introduction > len(self.surfaces):
             raise ValueError(
