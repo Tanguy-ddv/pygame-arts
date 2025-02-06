@@ -330,33 +330,41 @@ class SetIntroductionTime(Transformation):
 
         return surfaces, durations, new_intro_idx, index, width, height
 
-class ExtractMany(Transformation):
+def _index_here(index, thelen, introduction):
+    if index <= thelen:
+        return index
+    else:
+        return index - thelen + introduction
+
+class ExtractSlice(Transformation):
     """
     This transformation returns a subset of the images and durations of the art. Bounds are included
     """
 
-    def __init__(self, from_: int, to: int) -> None:
+    def __init__(self, slice: slice) -> None:
         super().__init__()
-        if from_ <= 0:
-            raise ValueError(f"from argument cannot be negative, got {from_}")
-        if from_ > to:
-            raise ValueError(f'to argument must be superior to from_, got {to} < {from_}')
-        self.from_ = from_
-        self.to = to
+        self.slice = slice
 
     def apply(self, surfaces: tuple[Surface], durations: tuple[int], introduction: int, index: int, width: int, height: int, **ld_kwargs):
-        this_to = len(surfaces) if self.to >= len(surfaces) else self.to
+        # Allow calling for indexing further than the number of surfaces, in this case, get the surfaces after having avoided the introduction.
+        # Ex: ExtractSlice(slice(10, 19)) on a art with len(art) = 15 and introduction = 7 returns the surfaces at indices [10, 11, 12, 13, 14, 7, 8, 9]
+        indices = self.slice.indices(len(surfaces)*2 - introduction)
+            
+        surfaces = tuple(surfaces[_index_here(index, len(surfaces), introduction)] for index in indices)
+        durations = tuple(durations[_index_here(index, len(surfaces), introduction)] for index in indices)
+        return surfaces, durations, 0, 0, width, height
 
-        if index >= this_to:
-            index -= (self.from_ - this_to)
-        elif index > self.from_:
-            index = self.from_
+class ExtractOne(Transformation):
+    """Extract one frame of the animation."""
 
-        if introduction >= this_to:
-            introduction -= (self.from_ - this_to)
-        elif introduction > self.from_:
-            introduction = self.from_
-        return surfaces[self.from_ : this_to +1], durations[self.from_ : this_to + 1], introduction, index, width, height
+    def __init__(self, index: int) -> None:
+        super().__init__()
+        self.index = index
+
+    def apply(self, surfaces: tuple[Surface], durations: tuple[int], introduction: int, index: int, width: int, height: int, **ld_kwargs):
+        if self.index >= len(surfaces)*2 - introduction:
+            raise IndexError(f"{self.index} is out of range in the art of len {len(surfaces)} and introduction {introduction}.")
+        return (surfaces[_index_here(self.index, len(surfaces), introduction)],), (0,), 0, 0, width, height
 
 class First(Transformation):
     """Extract the very first frame of the animation."""
@@ -369,13 +377,3 @@ class Last(Transformation):
 
     def apply(self, surfaces: tuple[Surface], durations: tuple[int], introduction: int, index: int, width: int, height: int, **ld_kwargs):
         return (surfaces[-1],), (0,), 0, 0, width, height
-
-class ExtractOne(Transformation):
-    """Extract the one frame of the animation."""
-
-    def __init__(self, index: int) -> None:
-        super().__init__()
-        self.index = index
-
-    def apply(self, surfaces: tuple[Surface], durations: tuple[int], introduction: int, index: int, width: int, height: int, **ld_kwargs):
-        return (surfaces[self.index],), (0,), 0, 0, width, height

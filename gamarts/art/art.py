@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from threading import Thread
 from pygame import Surface, image, surfarray as sa, Rect
 from PIL import Image
-from ..transform import Transformation, Pipeline
+from ..transform import Transformation, Pipeline, ExtractSlice, ExtractOne
 
 class Art(ABC):
     """The art class is the base for all the surfaces and animated surfaces of the game."""
@@ -45,11 +45,11 @@ class Art(ABC):
 
     def _verify_sizes(self):
         """verify that all surfaces have the same sizes."""
-        heights = [surf.get_height() for surf in self.surfaces]
-        widths = [surf.get_width() for surf in self.surfaces]
-        if len(set(heights)) != 1:
+        heights = set(surf.get_height() for surf in self.surfaces)
+        widths = set(surf.get_width() for surf in self.surfaces)
+        if len(heights) != 1:
             raise ValueError(f"All images of the art does not have the same height, got\n{heights}")
-        if len(set(widths)) != 1:
+        if len(widths) != 1:
             raise ValueError(f"All images of the art does not have the same width, got\n{widths}")
 
     @property
@@ -213,6 +213,19 @@ class Art(ABC):
         else:
             pil_images = [Image.fromarray(sa.array3d(surf)) for surf in self.surfaces]
             pil_images[0].save(path, format='GIF', save_all=True, append_images = pil_images[1:], duration=self.durations)
+    
+    def __len__(self):
+        return len(self.surfaces)
+
+    def __getitem__(self, key):
+        if isinstance(key, slice):
+            return self.copy(ExtractSlice(key))
+        elif isinstance(key, int):
+            return self.copy(ExtractOne(key))
+        else:
+            raise TypeError(f"Art indices must be integers or slices, not {type(key)}")
+    
+    
 
 class _ArtFromCopy(Art):
 
