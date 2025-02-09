@@ -179,7 +179,7 @@ class Art(ABC):
                 self._buffer_transfo_pipeline.clear()
 
         index = self._index if match is None else match.index
-        return self.surfaces[index].copy() # The current surface
+        return self.surfaces[index] # The current surface
     
     def transform(self, transformation: Transformation):
         """Apply a transformation to an Art."""
