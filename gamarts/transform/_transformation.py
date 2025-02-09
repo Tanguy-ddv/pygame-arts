@@ -348,10 +348,10 @@ class SetIntroductionTime(Transformation):
         return surfaces, durations, new_intro_idx, None, width, height
 
 def _index_here(index, thelen, introduction):
-    if index <= thelen:
+    if index < thelen:
         return index
     else:
-        return index - thelen + introduction
+        return _index_here(index - thelen + introduction, thelen, introduction)
 
 class ExtractSlice(Transformation):
     """
@@ -365,10 +365,9 @@ class ExtractSlice(Transformation):
     def apply(self, surfaces: tuple[Surface], durations: tuple[int], introduction: int, index: int, width: int, height: int, **ld_kwargs):
         # Allow calling for indexing further than the number of surfaces, in this case, get the surfaces after having avoided the introduction.
         # Ex: ExtractSlice(slice(10, 19)) on a art with len(art) = 15 and introduction = 7 returns the surfaces at indices [10, 11, 12, 13, 14, 7, 8, 9]
-        indices = self.slice.indices(len(surfaces)*2 - introduction)
-            
+        indices = range(*self.slice.indices(len(surfaces)*2 - introduction))
         surfaces = tuple(surfaces[_index_here(index, len(surfaces), introduction)] for index in indices)
-        durations = tuple(durations[_index_here(index, len(surfaces), introduction)] for index in indices)
+        durations = tuple(durations[_index_here(index, len(durations), introduction)] for index in indices)
         return surfaces, durations, 0, 0, width, height
 
 class ExtractOne(Transformation):
@@ -379,8 +378,7 @@ class ExtractOne(Transformation):
         self.index = index
 
     def apply(self, surfaces: tuple[Surface], durations: tuple[int], introduction: int, index: int, width: int, height: int, **ld_kwargs):
-        if self.index >= len(surfaces)*2 - introduction:
-            raise IndexError(f"{self.index} is out of range in the art of len {len(surfaces)} and introduction {introduction}.")
+
         return (surfaces[_index_here(self.index, len(surfaces), introduction)],), (0,), 0, 0, width, height
 
 class First(Transformation):
@@ -394,3 +392,76 @@ class Last(Transformation):
 
     def apply(self, surfaces: tuple[Surface], durations: tuple[int], introduction: int, index: int, width: int, height: int, **ld_kwargs):
         return (surfaces[-1],), (0,), 0, 0, width, height
+
+class ExtractAtIntroduction(Transformation):
+
+    def apply(self, surfaces: tuple[Surface], durations: tuple[int], introduction: int, index: int, width: int, height: int, **ld_kwargs):
+        return (surfaces[introduction],), (0,), 0, 0, width, height
+
+class ExtractTime(Transformation):
+    """Extract the frame appearing at a given time."""
+
+    def __init__(self, time: int) -> None:
+        super().__init__()
+        self.time = time
+    
+    def apply(self, surfaces: tuple[Surface], durations: tuple[int], introduction: int, index: int, width: int, height: int, **ld_kwargs):
+        cum_time = 0
+        idx = 0
+        next_idx = 1
+
+        while self.time >= cum_time + durations[next_idx]:
+            cum_time += durations[next_idx]
+            idx += 1
+            if idx == len(surfaces):
+                idx = introduction
+            next_idx += 1
+            if next_idx == len(surfaces):
+                next_idx = introduction
+        return (surfaces[idx],), (0,), 0, 0, width, height
+
+class ExtractWindow(Transformation):
+
+    def __init__(self, from_time: int, to_time: int):
+        super().__init__()
+
+        self.from_time = from_time
+        self.to_time = to_time
+
+    def apply(self, surfaces: tuple[Surface], durations: tuple[int], introduction: int, index: int, width: int, height: int, **ld_kwargs):
+        cum_time = 0
+        idx = 0
+        next_idx = 1
+
+        while self.from_time >= cum_time + durations[next_idx]:
+            cum_time += durations[next_idx]
+            idx += 1
+            if idx == len(surfaces):
+                idx = introduction
+            next_idx += 1
+            if next_idx == len(surfaces):
+                next_idx = introduction
+
+        surfs = [surfaces[idx]]
+        durs = [durations[idx]]
+        indices = [idx]
+
+        while self.to_time >= cum_time + durations[next_idx]:
+            cum_time += durations[next_idx]
+            idx += 1
+            if idx == len(surfaces):
+                idx = introduction
+            next_idx += 1
+            if next_idx == len(surfaces):
+                next_idx = introduction
+            surfs.append(surfaces[idx])
+            durs.append(durations[idx])
+            indices.append(idx)
+        
+        if introduction not in indices: introduction = 0
+        else: introduction = introduction - min(indices)
+
+        if index not in indices: index = 0
+        else: index = index - min(indices)
+
+        return surfs, durs, introduction, index, width, height

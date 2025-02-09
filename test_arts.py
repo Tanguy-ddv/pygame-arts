@@ -370,4 +370,23 @@ def see_reference():
     ref.unload()
     pygame.quit()
     
-see_reference()
+# see_reference()
+
+def test_extractions():
+    from gamarts.transform import ExtractTime, ExtractSlice, ExtractWindow
+    et = ExtractTime(22)
+    es = ExtractSlice(slice(7, 12, 1))
+    ew = ExtractWindow(7, 27)
+    surfaces = list(range(10))
+    intro = 0
+    durations = [2]*10
+    print(et.apply(surfaces, durations, intro, 0, 0, 0))
+    print(es.apply(surfaces, durations, intro, 0, 0, 0))
+    print(ew.apply(surfaces, durations, intro, 0, 0, 0))
+    intro = 5
+    print(et.apply(surfaces, durations, intro, 0, 0, 0))
+    print(es.apply(surfaces, durations, intro, 0, 0, 0))
+    print(ew.apply(surfaces, durations, intro, 0, 0, 0))
+
+
+test_extractions()
