@@ -169,7 +169,7 @@ class Art(ABC):
             not self._buffer_transfo_pipeline.is_empty()
             and (self._transfo_thread is None or not self._transfo_thread.is_alive())
         ): # Apply a transformation only if the last thread is finished
-            if self._buffer_transfo_pipeline.require_parallelization():
+            if self._buffer_transfo_pipeline.cost(self.width, self.height, len(self), **ld_kwargs) < ld_kwargs.get("cost_threshold", 20_000):
                 args = self._buffer_transfo_pipeline.copy(), # On a separate thread, in this case the transformation may be visible later.
                 self._buffer_transfo_pipeline.clear()
                 self._transfo_thread = Thread(target=self._transform, args=args, kwargs=ld_kwargs)

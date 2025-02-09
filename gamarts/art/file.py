@@ -17,16 +17,18 @@ class ImageFile(Art):
     ImageFile("characters/char1.jpeg") is an Art displaying the image stored at "assets/images/characters/char1.jpeg"
     """
 
-    def __init__(self, file: str, transformation: Transformation = None, force_load_on_start: bool = False, permanent: bool = False) -> None:
+    def __init__(self, file: str, transparency: bool = True, transformation: Transformation = None, force_load_on_start: bool = False, permanent: bool = False) -> None:
         super().__init__(transformation, force_load_on_start, permanent)
         self.full_path = file
         im = Image.open(self.full_path)
         self._width, self._height = im.size
+        self._transparency = transparency
         im.close()
         self._find_initial_dimension()
 
     def _load(self, **ld_kwargs):
-        self._surfaces = (load(self.full_path),)
+        if self._transparency: self._surfaces = (load(self.full_path).convert_alpha(),)
+        else: self._surfaces = (load(self.full_path).convert(),)
         self._durations = (0,)
 
 class ImageFolder(Art):

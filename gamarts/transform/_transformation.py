@@ -25,9 +25,14 @@ class Transformation(ABC):
         """Calculate the new dimensions of the art after transformation."""
         return width, height
 
-    def require_parallelization(self, **ld_kwargs):
-        """Return whether the transformation requires to parallelize the calculations."""
-        return False
+    def cost(self, width, height, length, **ld_kwargs):
+        """
+        Return the cost of the transformation.
+        
+        The cost is a numerical metric used to determine whether the transformation
+        should be done in the main thread or in a parallel thread.
+        """
+        return 0
 
     def __len__(self):
         return 1
@@ -72,9 +77,8 @@ class Pipeline(Transformation):
             width, height = transfo.get_new_dimension(width, height)
         return width, height
 
-    def require_parallelization(self, **ld_kwargs):
-        """Return whether the transformation requires to parallelize the calculations."""
-        return any(transfo.require_parallelization(**ld_kwargs) for transfo in self._transformations)
+    def cost(self, width, height, length, **ld_kwargs):
+        return sum(transfo.cost(width, height, length, **ld_kwargs) for transfo in self._transformations)
     
     def copy(self):
         return Pipeline(*self._transformations)
@@ -347,11 +351,11 @@ class SetIntroductionTime(Transformation):
 
         return surfaces, durations, new_intro_idx, None, width, height
 
-def _index_here(index, thelen, introduction):
-    if index < thelen:
+def _index_here(index, length, introduction):
+    if index < length:
         return index
     else:
-        return _index_here(index - thelen + introduction, thelen, introduction)
+        return _index_here(index - length + introduction, length, introduction)
 
 class ExtractSlice(Transformation):
     """

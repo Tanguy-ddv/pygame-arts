@@ -27,6 +27,12 @@ class DrawCircle(Transformation):
         for surf in surfaces:
             circle(surf, self.center, self.radius, self.color, self.thickness, antialias)
         return surfaces, durations, introduction, None, width, height
+    
+    def cost(self, width: int, height: int, length: int, **ld_kwargs):
+        if self.color.a == 255 and not ld_kwargs.get("antialias", False):
+            return self.radius**2*4*length
+        else:
+            return self.radius**2*4*length*4 # Once for the color draw, twice for the apha rendering (copy and addWeighted) and once for the final blit.
 
 class DrawRectangle(Transformation):
     """Draw a rectangle on the art."""
@@ -47,6 +53,13 @@ class DrawRectangle(Transformation):
         for surf in surfaces:
             rectangle(surf, self.rect, self.color, self.thickness)
         return surfaces, durations, introduction, None, width, height
+
+    def cost(self, width: int, height: int, length: int, **ld_kwargs):
+        if self.color.a == 255 and not ld_kwargs.get("antialias", False):
+            return self.rect.width*self.rect.height*length
+        else:
+            return self.rect.width*self.rect.height*length*4 # Once for the color draw, twice for the apha rendering (copy and addWeighted) and once for the final blit.
+
 
 class DrawRoundedRectantle(Transformation):
     """Draw a rectangle on the art, with rounded corners."""
@@ -77,6 +90,18 @@ class DrawRoundedRectantle(Transformation):
             rounded_rectangle(surf, self.rect, self.color, self.thickness, antialias, self.top_left, self.top_right, self.bottom_left, self.bottom_right)
         return surfaces, durations, introduction, None, width, height
 
+    def cost(self, width: int, height: int, length: int, **ld_kwargs):
+        if self.color.a == 255 and (not ld_kwargs.get("antialias", False) or self.top_right == self.top_left == self.bottom_right == self.bottom_left == 0) and (
+        # Condition to pygame.draw in pygame.CV
+            self.top_right + self.top_left <= self.rect.width//2
+            and self.bottom_left + self.bottom_right <= self.rect.width//2
+            and self.top_right + self.bottom_right <= self.rect.height//2
+            and self.top_left + self.bottom_left <= self.rect.height//2
+        ):
+            return self.rect.width*self.rect.height*length
+        else:
+            return self.rect.width*self.rect.height*length*4 # Once for the color draw, twice for the apha rendering (copy and addWeighted) and once for the final blit.
+
 class DrawEllipse(Transformation):
     """Draw an ellipse on the art."""
 
@@ -104,6 +129,12 @@ class DrawEllipse(Transformation):
             ellipse(surf, self.center, self.x_radius, self.y_radius, self.color, self.thickness, antialias, self.angle)
         return surfaces, durations, introduction, None, width, height
 
+    def cost(self, width: int, height: int, length: int, **ld_kwargs):
+        if self.color.a == 255 and not ld_kwargs.get("antialias", False):
+            return self.x_radius*self.y_radius*4*length
+        else:
+            return self.x_radius*self.y_radius*4*length*4 # Once for the color draw, twice for the apha rendering (copy and addWeighted) and once for the final blit.
+
 class DrawPolygon(Transformation):
     """Draw a polygon on the art."""
 
@@ -127,6 +158,15 @@ class DrawPolygon(Transformation):
             polygon(surf, self.points, self.color, self.thickness, antialias)
         return surfaces, durations, introduction, None, width, height
 
+    def cost(self, width: int, height: int, length: int, **ld_kwargs):
+        left = min(point[0] for point in self.points) - self.thickness//2
+        right = max(point[0] for point in self.points) + self.thickness//2 +1
+        top = min(point[1] for point in self.points) - self.thickness//2
+        bottom = max(point[1] for point in self.points) + self.thickness//2 + 1
+        width = right - left +1
+        height = bottom - top +1
+        return width*height*length*4 # Once for the color draw, twice for the apha rendering (copy and addWeighted) and once for the final blit.
+
 class DrawLine(Transformation):
     """Draw one line on the art."""
 
@@ -144,6 +184,15 @@ class DrawLine(Transformation):
             line(surf, self.p1, self.p2, self.color, self.thickness, antialias)
         return surfaces, durations, introduction, None, width, height
 
+    def cost(self, width: int, height: int, length: int, **ld_kwargs):
+        left = min(self.p1[0], self.p2[0]) - self.thickness//2
+        right = max(self.p1[0], self.p2[0]) + self.thickness//2 
+        top = min(self.p1[1], self.p2[1]) - self.thickness//2
+        bottom = max(self.p1[1], self.p2[1]) + self.thickness//2
+        width = right - left + 1
+        height = bottom - top + 1
+        return width*height*length*4 # Once for the color draw, twice for the apha rendering (copy and addWeighted) and once for the final blit.
+
 class DrawLines(Transformation):
     """Draw lines on the art."""
 
@@ -160,6 +209,15 @@ class DrawLines(Transformation):
         for surf in surfaces:
             lines(surf, self.points, self.color, self.thickness, antialias, self.closed)
         return surfaces, durations, introduction, None, width, height
+
+    def cost(self, width: int, height: int, length: int, **ld_kwargs):
+        left = min(point[0] for point in self.points) - self.thickness//2
+        right = max(point[0] for point in self.points) + self.thickness//2 +1
+        top = min(point[1] for point in self.points) - self.thickness//2
+        bottom = max(point[1] for point in self.points) + self.thickness//2 + 1
+        width = right - left +1
+        height = bottom - top +1
+        return width*height*length*4 # Once for the color draw, twice for the apha rendering (copy and addWeighted) and once for the final blit.
 
 class DrawArc(Transformation):
     """Draw an arc on the art."""
@@ -195,6 +253,9 @@ class DrawArc(Transformation):
 
         return surfaces, durations, introduction, None, width, height
 
+    def cost(self, width: int, height: int, length: int, **ld_kwargs):
+        return self.rx*self.ry*4*length*4 # Once for the color draw, twice for the apha rendering (copy and addWeighted) and once for the final blit.
+
 class DrawPie(Transformation):
     """Draw an arc on the art."""
 
@@ -227,3 +288,6 @@ class DrawPie(Transformation):
         for surf in surfaces:
             pie(surf, self.ellipsis_center, self.rx, self.ry, self.color, self.thickness, antialias, self.angle, self.from_angle, self.to_angle)
         return surfaces, durations, introduction, None, width, height
+
+    def cost(self, width: int, height: int, length: int, **ld_kwargs):
+        return self.rx*self.ry*4*length*4 # Once for the color draw, twice for the apha rendering (copy and addWeighted) and once for the final blit.
