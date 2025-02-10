@@ -212,7 +212,7 @@ class ShiftHue(_MatrixTransformation):
         else:
             value = self.value
         for surf in surfaces:
-            shift_hue(surf, value)
+            shift_hue(surf, value/2)
 
         return surfaces, durations, introduction, None, width, height
 

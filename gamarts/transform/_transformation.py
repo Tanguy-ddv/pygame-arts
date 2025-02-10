@@ -1,6 +1,7 @@
 """The transformation module contains the base class Transformation and all the subclasses."""
 from abc import ABC, abstractmethod
 from math import cos, sin, radians
+from random import randint
 import pygame.transform as tf
 from pygame import Surface, SRCALPHA, Rect, Color
 
@@ -469,3 +470,8 @@ class ExtractWindow(Transformation):
         else: index = index - min(indices)
 
         return surfs, durs, introduction, index, width, height
+
+class RandomizeIndex(Transformation):
+
+    def apply(self, surfaces: tuple[Surface], durations: tuple[int], introduction: int, index: int, width: int, height: int, **ld_kwargs):
+        return surfaces, durations, introduction, randint(len(surfaces)), width, height
