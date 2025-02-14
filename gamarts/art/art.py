@@ -13,7 +13,6 @@ class Art(ABC):
         Creates an Art.
 
         :transformation: gamarts.transform.Transformation = None. Any transformation (or Pipeline) that will be applied to the art when it is loaded.
-        
         """
         super().__init__()
         self._surfaces: tuple[Surface] = ()
@@ -37,17 +36,21 @@ class Art(ABC):
     
     @property
     def surfaces(self):
+        """Return the surfaces of the art in order of display."""
         return self._surfaces
     
     @property
     def durations(self):
+        """Return the durations of the frames in order of display."""
         return self._durations
     
     @property
     def introduction(self):
+        """Return the introduction index of the art."""
         return self._introduction
 
     def _find_initial_dimension(self):
+        """Find the initial dimension of the art. To be called at the end of initialization."""
         if self._on_loading_transformation:
             self._width, self._height = self._on_loading_transformation.get_new_dimension(self._width, self._height)
 
@@ -89,6 +92,9 @@ class Art(ABC):
 
     @abstractmethod
     def _load(self, **ld_kwargs):
+        """
+        Sublcass-specific loading method of the art.
+        """
         raise NotImplementedError()
 
     @property
@@ -97,9 +103,9 @@ class Art(ABC):
         return self._index
 
     def unload(self):
-        """Unload the surfaces."""
+        """Unload the surfaces and reset."""
         self.reset() # Reset the index.
-        if not self._transfo_thread is None:
+        if self._transfo_thread is not None:
             # Wait for the transformation thread to stop to not get surfaces still loaded in memory.
             self._transfo_thread.join()
         self._surfaces = ()
@@ -107,7 +113,14 @@ class Art(ABC):
         self._loaded = False
 
     def load(self, **ld_kwargs):
-        """Load the art at the beginning of the phase"""
+        """Load the art.
+        
+        Params:
+        ----
+        - **ld_kwargs: The loading keyword arguments. the arguments needed for the arts to be loaded. Should include 'antialias' and 'cost_threshold',
+        if they are not provided, default values are used: False for antialias and 200_000 for the cost. Other entries can be given if some custom arts
+        need them.
+        """
         self._time_since_last_change = 0
         self._index = 0
         if not self._loaded:
@@ -125,7 +138,13 @@ class Art(ABC):
         """
         Update the instance animation.
         
-        Return True if the index changed.
+        Params:
+        ---
+        loop_duration: float, the duration of the game loop, (the value returned by clock.tick(FPS)).
+
+        Returns:
+        ----
+        has_changed: bool, whether the index changed or a transformation have been applied since the last call.
         """
         if len(self.surfaces) > 1:
             self._time_since_last_change += loop_duration
@@ -149,13 +168,17 @@ class Art(ABC):
         self._index = 0
         self._time_since_last_change = 0
 
-    def get(self,  match: 'Art' = None, **ld_kwargs):
+    def get(self, match: 'Art' = None, **ld_kwargs) -> Surface:
         """
-        Return the current Frame.
+        Return the current Frame. If not already loaded, the art is loaded now. If a transformation is waiting to be executed, it is executed now.
         
-        - match: Art, if not None, the index will match the index of the other art to match, otherwise, use its own index
+        Params:
+        ---
+        - match: Art, if povided, the index will match the index of the other art to match, otherwise, use its own index.
+        - **ld_kwargs: The loading keyword arguments. the arguments needed for the arts to be loaded. Should include 'antialias' and 'cost_threshold',
+        if they are not provided, default values are used: False for antialias and 200_000 for the cost. Other entries can be given if some custom arts
+        need them.
         """
-        
         if not self._loaded: # Load the art
             self.load(**ld_kwargs)
 
@@ -163,7 +186,7 @@ class Art(ABC):
             not self._buffer_transfo_pipeline.is_empty()
             and (self._transfo_thread is None or not self._transfo_thread.is_alive())
         ): # Apply a transformation only if the last thread is finished
-            if self._buffer_transfo_pipeline.cost(self.width, self.height, len(self), **ld_kwargs) < ld_kwargs.get("cost_threshold", 20_000):
+            if self._buffer_transfo_pipeline.cost(self.width, self.height, len(self), **ld_kwargs) < ld_kwargs.get("cost_threshold", 200_000):
                 args = self._buffer_transfo_pipeline.copy(), # On a separate thread, in this case the transformation may be visible later.
                 self._buffer_transfo_pipeline.clear()
                 self._transfo_thread = Thread(target=self._transform, args=args, kwargs=ld_kwargs)
@@ -176,45 +199,61 @@ class Art(ABC):
         return self.surfaces[index] # The current surface
     
     def transform(self, transformation: Transformation):
-        """Apply a transformation to an Art."""
+        """Apply a transformation to an Art.
+        
+        Params:
+        ----
+        transformation: Transformation, the transformation that will be applied in the next get.
+        """
         self._buffer_transfo_pipeline.add_transformation(transformation)
 
     def _transform(self, transformation: Transformation, **ld_kwargs):
-        """Apply a transformation"""
-        if self._loaded:
-            (   self._surfaces,
-                self._durations,
-                self._introduction,
-                index,
-                self._width,
-                self._height
-            ) = transformation.apply(
-                self._surfaces,
-                self._durations,
-                self._introduction,
-                self._index,
-                self._width,
-                self._height,
-                **ld_kwargs
-            )
-            if index is not None:
-                self._index = index
-            self._buffer_transfo_pipeline.clear()
-            self._has_changed = True
-            for reference in self._references:
-                reference._has_changed = True
-        else:
-            raise RuntimeError("A transformation have be called on an unloaded Art, please use the art's constructor to transform the initial art.")
+        """
+        Apply a transformation.
+        
+        Params:
+        ----
+        transformation: Transformation, the transformation that will be applied in the next get.
+        - **ld_kwargs: The loading keyword arguments. the arguments needed for the arts to be loaded. Should include 'antialias' and 'cost_threshold',
+        if they are not provided, default values are used: False for antialias and 200_000 for the cost. Other entries can be given if some custom arts
+        need them.
+        """
+        (   self._surfaces,
+            self._durations,
+            self._introduction,
+            index,
+            self._width,
+            self._height
+        ) = transformation.apply(
+            self._surfaces,
+            self._durations,
+            self._introduction,
+            self._index,
+            self._width,
+            self._height,
+            **ld_kwargs
+        )
+        if index is not None:
+            self._index = index
+        self._buffer_transfo_pipeline.clear()
+        self._has_changed = True
+        for reference in self._references:
+            reference._has_changed = True
 
     def copy(self, additional_transformation: Transformation = None) -> '_ArtAsCopy':
         """
-        Return an independant copy of the art.
+        Return an independant copy of the art. The copy's initial surfaces will be the same as its original. If a copy is created after the loading
+        of the original, its initial surfaces is the original's current surfaces and not the original's initial surfaces.
+
+        Params:
+        ---
+        additional_transformation: Transformation = None. If provided, another transformation will be performed on the copy during its loading.
         """
         copy = _ArtAsCopy(self, additional_transformation)
         self._copies.append(copy)
         return copy
     
-    def reference(self):
+    def reference(self) -> '_ArtAsReference':
         """
         Return a dependant copy of the art. This new object shares the surfaces and durations, any transformation applied to it will be applied
         to the original art (and vice versa). The animation, however, is independant.
@@ -223,12 +262,20 @@ class Art(ABC):
         self._references.append(reference)
         return reference
 
-    def get_rect(self, x: int, y: int) -> Rect:
+    def get_rect(self) -> Rect:
         """Create a pygame.Rect without masked based on this art."""
-        return self.surfaces[0].get_rect().move(x,y)
+        return self.surfaces[0].get_rect()
 
     def save(self, path: str, index: int | slice = None):
-        """Save the art as a gif or as an image."""
+        """
+        Save the art as a gif or as an image.
+        
+        Params:
+        ----
+        path: str, the path where the art should be saved.
+        index: int | slice = None, the index or indices of the frames in the animation that will be saved.
+        
+        """
         if not self.is_loaded():
             raise RuntimeError("Cannot save an unloaded art.")
         if len(self.surfaces) == 1:
@@ -253,6 +300,7 @@ class Art(ABC):
             raise TypeError(f"Art indices must be integers or slices, not {type(key)}")
 
 class _ArtAsCopy(Art):
+    """ArtAsCopy represent an Art created with the .copy() method of another art."""
 
     def __init__(self, original: Art, additional_transformation: Transformation):
         super().__init__(additional_transformation)
@@ -271,10 +319,11 @@ class _ArtAsCopy(Art):
         self._introduction = self._original.introduction
 
 class _ArtAsReference(Art):
+    """ArtAsReference represent an Art created with the .reference() method of another art."""
 
     def __init__(self, original: Art):
 
-        super().__init__(None, original._permanent)
+        super().__init__(None)
         self._original = original
         self._height = self._original.height
         self._width = self._original.width    
