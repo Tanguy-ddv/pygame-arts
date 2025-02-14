@@ -17,8 +17,8 @@ class ImageFile(Art):
     ImageFile("characters/char1.jpeg") is an Art displaying the image stored at "assets/images/characters/char1.jpeg"
     """
 
-    def __init__(self, file: str, transparency: bool = True, transformation: Transformation = None, force_load_on_start: bool = False, permanent: bool = False) -> None:
-        super().__init__(transformation, force_load_on_start, permanent)
+    def __init__(self, file: str, transparency: bool = True, transformation: Transformation = None) -> None:
+        super().__init__(transformation)
         self.full_path = file
         im = Image.open(self.full_path)
         self._width, self._height = im.size
@@ -54,10 +54,9 @@ class ImageFolder(Art):
         durations: Iterable[int] | int,
         introduction: int = 0,
         transformation: Transformation = None,
-        force_load_on_start: bool = False,
         permanent: bool = False,
     ) -> None:
-        super().__init__(transformation, force_load_on_start, permanent)
+        super().__init__(transformation)
         self.full_path = folder
         self.durs = durations
         self._introduction = introduction
@@ -100,8 +99,8 @@ class GIFFile(Art):
     When all the images have been displayed, do not loop on the very first but on the 10th.
     """
 
-    def __init__(self, file: str, transformation: Transformation = None, introduction: int = 0, force_load_on_start: bool = False, permanent: bool = False) -> None:
-        super().__init__(transformation, force_load_on_start, permanent)
+    def __init__(self, file: str, transformation: Transformation = None, introduction: int = 0) -> None:
+        super().__init__(transformation)
         self.full_path = file
         self._introduction = introduction
         im = Image.open(self.full_path)

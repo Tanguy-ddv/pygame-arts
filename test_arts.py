@@ -337,14 +337,14 @@ def see_masks3():
 # see_masks3()
 
 def see_reference():
-    from gamarts import GIFFile
+    from gamarts import GIFFile, LD_KWARGS
     screen = init()
     from gamarts.transform import ShiftHue, Resize
     earth = GIFFile("images/wikipedia_earth.gif", Resize((200, 200)))
     ref = earth.reference()
-    earth.start()
-    ref.start()
-    ld_kwargs = {'antialias' : True}
+    ld_kwargs = LD_KWARGS
+    earth.load(**ld_kwargs)
+    ref.load(**ld_kwargs)
     running = True
     clock = pygame.time.Clock()
     pressed = False

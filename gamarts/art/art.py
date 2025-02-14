@@ -6,9 +6,15 @@ from PIL import Image
 from ..transform import Transformation, Pipeline, ExtractSlice, ExtractOne
 
 class Art(ABC):
-    """The art class is the base for all the surfaces and animated surfaces of the game."""
+    """The art class is the base for all the surfaces and animated surfaces of the game. They cannot be instanciated."""
 
-    def __init__(self, transformation: Transformation = None, force_load_on_start: bool = False, permanent: bool = False) -> None:
+    def __init__(self, transformation: Transformation = None) -> None:
+        """
+        Creates an Art.
+
+        :transformation: gamarts.transform.Transformation = None. Any transformation (or Pipeline) that will be applied to the art when it is loaded.
+        
+        """
         super().__init__()
         self._surfaces: tuple[Surface] = ()
         self._durations: tuple[int] = ()
@@ -24,8 +30,6 @@ class Art(ABC):
 
         self._buffer_transfo_pipeline = Pipeline()
 
-        self._force_load_on_start = force_load_on_start
-        self._permanent = permanent
         self._transfo_thread = None
         self._has_changed = False
         self._copies: list[_ArtAsCopy] = []
@@ -42,15 +46,6 @@ class Art(ABC):
     @property
     def introduction(self):
         return self._introduction
-
-    def set_load_on_start(self):
-        """Set the force_load_start_attribute to be True."""
-        self._force_load_on_start = True
-
-    def start(self, **ld_kwargs):
-        """Call this method at the start of the phase."""
-        if self._force_load_on_start and not self._loaded:
-            self.load(**ld_kwargs)
 
     def _find_initial_dimension(self):
         if self._on_loading_transformation:
@@ -104,13 +99,12 @@ class Art(ABC):
     def unload(self):
         """Unload the surfaces."""
         self.reset() # Reset the index.
-        if not self._permanent:
-            if self._transfo_thread is not None:
-                # Wait for the transformation thread to stop to not get surfaces still loaded in memory.
-                self._transfo_thread.join()
-            self._surfaces = ()
-            self._durations = ()
-            self._loaded = False
+        if not self._transfo_thread is None:
+            # Wait for the transformation thread to stop to not get surfaces still loaded in memory.
+            self._transfo_thread.join()
+        self._surfaces = ()
+        self._durations = ()
+        self._loaded = False
 
     def load(self, **ld_kwargs):
         """Load the art at the beginning of the phase"""
@@ -212,13 +206,11 @@ class Art(ABC):
         else:
             raise RuntimeError("A transformation have be called on an unloaded Art, please use the art's constructor to transform the initial art.")
 
-    def copy(self, additional_transformation: Transformation = None, permanent: bool = False) -> '_ArtAsCopy':
+    def copy(self, additional_transformation: Transformation = None) -> '_ArtAsCopy':
         """
         Return an independant copy of the art.
-        
-        If force_load_on_start is set to True, the copy will be loaded at the start of the phase. Set it to true if 
         """
-        copy = _ArtAsCopy(self, additional_transformation, permanent)
+        copy = _ArtAsCopy(self, additional_transformation)
         self._copies.append(copy)
         return copy
     
@@ -262,8 +254,8 @@ class Art(ABC):
 
 class _ArtAsCopy(Art):
 
-    def __init__(self, original: Art, additional_transformation: Transformation, permanent: bool = False):
-        super().__init__(additional_transformation, original._force_load_on_start, permanent)
+    def __init__(self, original: Art, additional_transformation: Transformation):
+        super().__init__(additional_transformation)
         # The on load transformation has been removed because the transformation are executed during the loading of the original
         self._original = original
         self._height = self._original.height
@@ -282,7 +274,7 @@ class _ArtAsReference(Art):
 
     def __init__(self, original: Art):
 
-        super().__init__(None, original._force_load_on_start, original._permanent)
+        super().__init__(None, original._permanent)
         self._original = original
         self._height = self._original.height
         self._width = self._original.width    

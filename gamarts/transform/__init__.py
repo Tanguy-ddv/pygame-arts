@@ -1,7 +1,7 @@
 from ._combination import Blit, Average, Concatenate
 from ._transformation import (
     Transformation, Pipeline,
-    SetIntroductionIndex, SetIntroductionTime, SlowDown, SpeedUp, ResetDuration, ResetDurations,
+    SetIntroductionIndex, SetIntroductionTime, SlowDown, SpeedUp, SetDuration, SetDurations,
     Resize, Rotate, Crop, VerticalChop, HorizontalChop, Last, ExtractSlice, ExtractOne, First, Flip, Transpose,
     Zoom, Pad, ExtractTime, ExtractWindow
 )

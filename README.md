@@ -45,20 +45,10 @@ while running:
     pygame.display.flip()
 
 lenna.unload() # Unload the Art if permanent is False.
-# by using force_load_on_start and permanent, you easily load and unload between the different phases to avoided over multiplicating the loaded ressources.
 pygame.quit()
 ```
 
 ### Common elements
-
-All arts have an argument force_load_on_start and permanent to manage its loading/unloading behavior. They all can be transformed, they all need
-an ld_kwargs passed with **, with at least the entries 'antialias' : [bool] and 'cost_threshold' : [int]
-If the surface obtain with .get() is modified later, the modification will appear only on this surface.
-Get has another argument, match: gamarts.Art, used to match the index of another art to synchronize animations.
-The constructor of each Art also has another argument, transformation: gamarts.transform.Transformation, used to apply
-a transformation in the loading of the Art. All Arts have a list of durations representing the time each frame will be displayed.
-They also can have an introduction, being the number of frames that it skipped when the animation loops. For example, an animation of a character running
-could be composed of 3 frames to prepare and 7 to run. If introduction=3, then the 8th displayed frame is the animation's fourth.
 
 All arts have several methods and properties:
 - ``surfaces``: a property returning a tuple of all the art's surfaces
@@ -66,22 +56,25 @@ All arts have several methods and properties:
 - ``introduction``: a property returning the introduction of the art.
 - ``size``, ``height`` and ``width``: properties, used to get the dimension of the art.
 - ``is_loaded``: a property returning whether the art is loaded.
-- ``total_duratio``n: a property returning the total duration of an animation, from the first to last frame
+- ``total_duration``: a property returning the total duration of an animation, from the first to last frame
 - ``index``: a property returning the index-th frame of the animation that is currently displayed.
 - ``transform()``: is used to apply a transformation to an Art, see below
 - ``get_rect()``: returns a rect generated with the Art
 - ``save(index: int = None)``: saves the Art as a GIF or as an image, if the index is provided and the art has more than 1 surface
-- ``set_load_on_start()``: a method allowing to set the load_on_start argument to True if was not.
 - ``reset()`` resets the animation to the first frame.
 - ``update(loop_duration)`` updates the index of the frame based on time and their durations. It will return True if the art changed since the last call (a transformation or a new frame is to be shown.)
 - ``get(match: Art, **ld_kwargs) -> Surface`` returns the current surface of the animation, and apply the transformations waiting to be applied.
-- ``copy(additional_transformation: Transformation, permanent: bool) -> Art, return a fully indendent art using the frame of the original as initial
+- ``copy(additional_transformation: Transformation) -> Art``, return a fully indendent art using the frame of the original as initial
 surfaces, they can be further transformed.
 - ``reference() -> Art`` returns a dependant art. The original and the reference will fully share their surfaces, durations and introduction, any tranformation on one
 will happen on the other, however, they have independant indices.
+- ``load(**ld_kwargs)`` loads the art. It is called automatically at the first call of ``get`` if the art has not been loaded yet.
+- ``unload()`` unload the art to release some memory.
 
-- len(art) will return the number of frames in the animation
-- art[x] where x is any slice or int will return a copy with a subset of the arts.
+- ``len(art)`` returns the number of frames in the animation
+- ``art[x]`` where x is any slice or int (for example, ``art[1:9:3]``) returns a copy with a subset of the arts.
+
+If the surface obtain with ``.get()`` is modified later, the modification will appear only on this surface. ``.get`` has another argument, match: gamarts.Art, used to match the index of another art to synchronize animations. The constructor of each Art also has another argument, transformation: gamarts.transform.Transformation, used to apply a transformation in the loading of the Art. All Arts have a list of durations representing the time each frame will be displayed. They also can have an introduction, being the number of frames that it skipped when the animation loops. For example, an animation of a character running could be composed of 3 frames to prepare and 7 to run. If introduction=3, then the 8th displayed frame is the animation's fourth.
 
 ### All arts
 
