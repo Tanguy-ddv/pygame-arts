@@ -108,16 +108,16 @@ class DrawEllipse(Transformation):
     def __init__(
         self,
         color: Color,
-        x_radius: int,
-        y_radius: int,
+        radius_x: int,
+        radius_y: int,
         center: tuple[int, int],
         thickness: int = 0,
         angle: int=0,
         allow_antialias: bool = True
     ):
         self.color = color
-        self.x_radius = x_radius
-        self.y_radius = y_radius
+        self.radius_x = radius_x
+        self.radius_y = radius_y
         self.center = center
         self.angle = angle
         self.thickness = thickness
@@ -126,14 +126,14 @@ class DrawEllipse(Transformation):
     def apply(self, surfaces: tuple[Surface], durations: tuple[int], introduction: int, index: int, width: int, height: int, **ld_kwargs):
         antialias = self.allow_antialias and ld_kwargs.get("antialias", False)
         for surf in surfaces:
-            ellipse(surf, self.center, self.x_radius, self.y_radius, self.color, self.thickness, antialias, self.angle)
+            ellipse(surf, self.center, self.radius_x, self.radius_y, self.color, self.thickness, antialias, self.angle)
         return surfaces, durations, introduction, None, width, height
 
     def cost(self, width: int, height: int, length: int, **ld_kwargs):
         if self.color.a == 255 and not ld_kwargs.get("antialias", False):
-            return self.x_radius*self.y_radius*4*length
+            return self.radius_x*self.radius_y*4*length
         else:
-            return self.x_radius*self.y_radius*4*length*4 # Once for the color draw, twice for the apha rendering (copy and addWeighted) and once for the final blit.
+            return self.radius_x*self.radius_y*4*length*4 # Once for the color draw, twice for the apha rendering (copy and addWeighted) and once for the final blit.
 
 class DrawPolygon(Transformation):
     """Draw a polygon on the art."""
@@ -226,8 +226,8 @@ class DrawArc(Transformation):
         self,
         color: Color,
         ellipsis_center: tuple[int, int],
-        horizontal_radius: int,
-        vertical_radius: int,
+        radius_x: int,
+        radius_y: int,
         from_angle: int,
         to_angle: int,
         angle: int = 0,
@@ -237,8 +237,8 @@ class DrawArc(Transformation):
         self.color = color
         self.thickness = thickness
         self.ellipsis_center = ellipsis_center
-        self.rx = horizontal_radius
-        self.ry = vertical_radius
+        self.rx = radius_x
+        self.ry = radius_y
         self.from_angle = from_angle
         self.to_angle = to_angle
         self.angle = angle
@@ -263,8 +263,8 @@ class DrawPie(Transformation):
         self,
         color: Color,
         ellipsis_center: tuple[int, int],
-        horizontal_radius: int,
-        vertical_radius: int,
+        radius_x: int,
+        radius_y: int,
         from_angle: int,
         to_angle: int,
         angle: int = 0,
@@ -274,8 +274,8 @@ class DrawPie(Transformation):
         self.color = color
         self.thickness = thickness
         self.ellipsis_center = ellipsis_center
-        self.rx = horizontal_radius
-        self.ry = vertical_radius
+        self.rx = radius_x
+        self.ry = radius_y
         self.from_angle = from_angle
         self.to_angle = to_angle
         self.angle = angle

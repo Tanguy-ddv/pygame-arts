@@ -1,7 +1,7 @@
 """The transformation module contains the base class Transformation and all the subclasses."""
 from abc import ABC, abstractmethod
 from math import cos, sin, radians
-from random import randint
+from random import randint, shuffle
 import pygame.transform as tf
 from pygame import Surface, SRCALPHA, Rect, Color
 
@@ -175,7 +175,7 @@ class Crop(Transformation):
         cropped_surfaces = []
         for surf in surfaces:
             background.blit(surf, (0,0), self.rect)
-            cropped_surfaces.append(background.copy())
+            cropped_surfaces.append(background)
         return tuple(cropped_surfaces), durations, introduction, None, *self.rect.size
 
     def get_new_dimension(self, width, height):
@@ -299,9 +299,9 @@ class SlowDown(Transformation):
         new_durations = tuple(d*self.scale for d in durations)
         return surfaces, new_durations, introduction, None, width, height
 
-class ResetDuration(Transformation):
+class SetDuration(Transformation):
     """
-    Reset the duration of every image in the art to a new value.
+    Set the duration of every image in the art to a new value.
     """
 
     def __init__(self, new_duration: int) -> None:
@@ -311,9 +311,9 @@ class ResetDuration(Transformation):
     def apply(self, surfaces: tuple[Surface], durations: tuple[int], introduction: int, index: int, width: int, height: int, **ld_kwargs):
         return surfaces, tuple(self.new_duration for _ in durations), introduction, None, width, height
 
-class ResetDurations(Transformation):
+class SetDurations(Transformation):
     """
-    Reset the durations of every image in the art to new values.
+    Set the durations of every image in the art to new values.
     """
 
     def __init__(self, new_durations: tuple[int]) -> None:
@@ -346,8 +346,8 @@ class SetIntroductionTime(Transformation):
 
         sum_dur = 0
         new_intro_idx = 0
-        while sum_dur < self.introduction and new_intro_idx < len(durations):
-            sum_dur += durations[new_intro_idx]
+        while sum_dur < self.introduction:
+            sum_dur += durations[new_intro_idx%len(surfaces)]
             new_intro_idx += 1
 
         return surfaces, durations, new_intro_idx, None, width, height
@@ -475,3 +475,14 @@ class RandomizeIndex(Transformation):
 
     def apply(self, surfaces: tuple[Surface], durations: tuple[int], introduction: int, index: int, width: int, height: int, **ld_kwargs):
         return surfaces, durations, introduction, randint(len(surfaces)), width, height
+
+class Shuffle(Transformation):
+
+    def apply(self, surfaces: tuple[Surface], durations: tuple[int], introduction: int, index: int, width: int, height: int, **ld_kwargs):
+        indices = list(range(len(surfaces)))
+        shuffle(indices)
+        surfaces = tuple(surfaces[idx] for idx in indices)
+        durations = tuple(durations[idx] for idx in indices)
+        index = indices.index(index)
+        introduction = indices.index(introduction)
+        return surfaces, durations, introduction, index, width, height

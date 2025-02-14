@@ -202,8 +202,8 @@ class TexturedPolygon(Art):
 
     def __init__(
         self,
-        points: Sequence[tuple[int, int]],
         texture: Art,
+        points: Sequence[tuple[int, int]],
         texture_top_left: tuple[int, int] = (0, 0),
         transformation: Transformation = None,
         force_load_on_start: bool = False,
@@ -254,8 +254,8 @@ class TexturedCircle(Art):
 
     def __init__(
         self,
-        radius: int,
         texture: Art,
+        radius: int,
         center: tuple[int, int] = None,
         draw_top_right: bool = True,
         draw_top_left: bool = True,
@@ -307,9 +307,9 @@ class TexturedEllipse(Art):
 
     def __init__(
         self,
+        texture: Art,
         horizontal_radius: int,
         vertical_radius: int,
-        texture: Art,
         center: tuple[int, int] = None,
         transformation: Transformation = None,
         force_load_on_start: bool = False,
