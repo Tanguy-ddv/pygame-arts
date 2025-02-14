@@ -2,4 +2,4 @@ from gamarts.art import GIFFile, ImageFile, ImageFolder, Rectangle, RoundedRecta
 import gamarts.mask as mask
 import gamarts.transform as transform
 
-LD_KWARGS = {'antialias': False, 'cost_threshold': 20_000}
+LD_KWARGS = {'antialias': False, 'cost_threshold': 200_000}
