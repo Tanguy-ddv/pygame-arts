@@ -5,14 +5,19 @@ from pygame import Surface, image, surfarray as sa, Rect
 from PIL import Image
 from ..transform import Transformation, Pipeline, ExtractSlice, ExtractOne
 
+class LoadingError(Exception):
+    """Error to be raised when an error related to the loading of an Art is to be raised."""
+
 class Art(ABC):
-    """The art class is the base for all the surfaces and animated surfaces of the game. They cannot be instanciated."""
+    """The Art class is the base for all the surfaces and animated surfaces of the game. They cannot be instanciated."""
 
     def __init__(self, transformation: Transformation = None) -> None:
         """
         Creates an Art.
 
-        :transformation: gamarts.transform.Transformation = None. Any transformation (or Pipeline) that will be applied to the art when it is loaded.
+        Params:
+        ----
+        - transformation: transform.Transformation = None. Any transformation (or Pipeline) that will be applied to the art when it is loaded.
         """
         super().__init__()
         self._surfaces: tuple[Surface] = ()
@@ -59,9 +64,9 @@ class Art(ABC):
         heights = set(surf.get_height() for surf in self.surfaces)
         widths = set(surf.get_width() for surf in self.surfaces)
         if len(heights) != 1:
-            raise ValueError(f"All images of the art does not have the same height, got\n{heights}")
+            raise LoadingError(f"All images of the art does not have the same height, got\n{heights}")
         if len(widths) != 1:
-            raise ValueError(f"All images of the art does not have the same width, got\n{widths}")
+            raise LoadingError(f"All images of the art does not have the same width, got\n{widths}")
 
     @property
     def size(self):
@@ -140,11 +145,11 @@ class Art(ABC):
         
         Params:
         ---
-        loop_duration: float, the duration of the game loop, (the value returned by clock.tick(FPS)).
+        - loop_duration: float, the duration of the game loop, (the value returned by clock.tick(FPS)).
 
         Returns:
-        ----
-        has_changed: bool, whether the index changed or a transformation have been applied since the last call.
+        ---
+        - has_changed: bool, whether the index changed or a transformation have been applied since the last call.
         """
         if len(self.surfaces) > 1:
             self._time_since_last_change += loop_duration
@@ -203,7 +208,7 @@ class Art(ABC):
         
         Params:
         ----
-        transformation: Transformation, the transformation that will be applied in the next get.
+        - transformation: Transformation, the transformation that will be applied in the next get.
         """
         self._buffer_transfo_pipeline.add_transformation(transformation)
 
@@ -213,7 +218,7 @@ class Art(ABC):
         
         Params:
         ----
-        transformation: Transformation, the transformation that will be applied in the next get.
+        - transformation: Transformation, the transformation that will be applied in the next get.
         - **ld_kwargs: The loading keyword arguments. the arguments needed for the arts to be loaded. Should include 'antialias' and 'cost_threshold',
         if they are not provided, default values are used: False for antialias and 200_000 for the cost. Other entries can be given if some custom arts
         need them.
@@ -247,7 +252,7 @@ class Art(ABC):
 
         Params:
         ---
-        additional_transformation: Transformation = None. If provided, another transformation will be performed on the copy during its loading.
+        - additional_transformation: Transformation = None. If provided, another transformation will be performed on the copy during its loading.
         """
         copy = _ArtAsCopy(self, additional_transformation)
         self._copies.append(copy)
@@ -272,12 +277,12 @@ class Art(ABC):
         
         Params:
         ----
-        path: str, the path where the art should be saved.
-        index: int | slice = None, the index or indices of the frames in the animation that will be saved.
+        - path: str, the path where the art should be saved.
+        - index: int | slice = None, the index or indices of the frames in the animation that will be saved.
         
         """
         if not self.is_loaded():
-            raise RuntimeError("Cannot save an unloaded art.")
+            raise LoadingError("Cannot save an unloaded art.")
         if len(self.surfaces) == 1:
             image.save(self.surfaces[0], path)
         elif index is not None and isinstance(index, int):
@@ -297,7 +302,7 @@ class Art(ABC):
         elif isinstance(key, int):
             return self.copy(ExtractOne(key))
         else:
-            raise TypeError(f"Art indices must be integers or slices, not {type(key)}")
+            raise IndexError(f"Art indices must be integers or slices, not {type(key)}")
 
 class _ArtAsCopy(Art):
     """ArtAsCopy represent an Art created with the .copy() method of another art."""
