@@ -5,6 +5,8 @@ from ZOCallable import ZOZOCallable, verify_ZOZOCallable
 from ZOCallable.functions import linear
 import numpy as np
 from pygame import Surface, surfarray as sa, SRCALPHA, draw, Rect
+from .._error import LoadingError
+
 
 class Mask(ABC):
     """Mask is an abstract class for all masks."""
@@ -28,54 +30,34 @@ class Mask(ABC):
         self.matrix = None
         self._loaded = False
 
-    def update(self, loop_duration):
-        """Update the mask if it can be updated."""
-
     def is_loaded(self):
         """Return True if the mask is loaded, False otherwise."""
         return self._loaded
-
-    def __bool__(self):
-        return True
-
-    def get_at(self, pos: tuple[int, int]):
-        """
-        Return the value of the matrix at this coordinate.
-        """
-        if not self.is_loaded():
-            return False
-        return not bool(self.matrix[int(pos[0]), int(pos[1])])
-
-    def set_at(self, pos: tuple[int, int], value: float):
-        """
-        Set a new value for the matrix at this coordinate.
-        """
-        if self.is_loaded():
-            self.matrix[pos] = min(1, max(0, value))
 
     def not_null_columns(self):
         """Return the list of indices of the columns that have at least one value different from 0."""
         if self.is_loaded():
             return np.where(self.matrix.any(axis=0))[0]
-        return []
+        raise LoadingError("Unloaded masks do not have any matrix and so not null columns.")
 
     def not_null_rows(self):
         """Return the list of indices of the rows that have at least one value different from 0."""
         if self.is_loaded():
             return np.where(self.matrix.any(axis=1))[0]
-        return []
+        raise LoadingError("Unloaded masks do not have any matrix and so not null rows.")
 
     def is_empty(self):
         """Return True if all the pixels in the mask are set to 0."""
-        if not self.is_loaded():
-            return True
-        return np.sum(self.matrix) == 0
+        if self.is_loaded():
+            return np.sum(self.matrix) == 0
+        raise LoadingError("Unloaded masks cannot be empty.")
+
 
     def is_full(self):
         """Return True if all the pixels in the mask are set to 1."""
-        if not self.is_loaded():
-            return False
-        return np.sum(self.matrix) == self.matrix.size
+        if self.is_loaded():
+            return np.sum(self.matrix) == self.matrix.size
+        raise LoadingError("Unloaded masks cannot be full.")
 
 class MatrixMask(Mask):
     """A matrix mask is a mask based on a matri, this matrix can be changed."""
