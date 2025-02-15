@@ -1,7 +1,7 @@
 from typing import Sequence
 from pygame import Surface, Rect, Color
 from pygamecv import rectangle, line, lines, polygon, circle, ellipse, pie, arc, rounded_rectangle
-from ._transformation import Transformation
+from .transformation import Transformation
 
 class DrawCircle(Transformation):
     """Draw a circle on the art."""

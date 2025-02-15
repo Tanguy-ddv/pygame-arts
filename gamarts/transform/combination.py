@@ -1,6 +1,6 @@
 """The binary transformation file contains transformation that include other arts."""
 from pygame import Surface, transform as tf
-from ._transformation import Transformation
+from .transformation import Transformation
 
 class Concatenate(Transformation):
     """The concatenate transformation concatenante two arts into one bigger animation."""

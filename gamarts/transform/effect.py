@@ -3,7 +3,7 @@ from typing import Callable
 from pygame import Surface, transform as tf, surfarray as sa
 import numpy as np
 from pygamecv import saturate, desaturate, shift_hue, lighten, darken
-from ._transformation import Transformation
+from .transformation import Transformation
 from ..mask import Mask
 
 class SetAlpha(Transformation):
