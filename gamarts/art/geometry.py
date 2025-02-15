@@ -1,22 +1,37 @@
 """The geometry module contains arts build from a geometry."""
 
-from typing import Sequence
+from typing import Sequence, Tuple, Union
 from pygame import Surface, SRCALPHA, mask as msk, Color, gfxdraw, draw
 from .art import Art
 from ..transform import Transformation
 from pygamecv import rectangle, circle, ellipse, polygon, rounded_rectangle
 
+RGBAOutput = Tuple[int, int, int, int]
+ColorValue = Union[Color, int, str, Tuple[int, int, int], RGBAOutput, Sequence[int]]
+
 class Rectangle(Art):
-    """A Rectangle is an Art with only one color."""
+    """A Rectangle is an Art representing a rectangle."""
 
     def __init__(
         self,
-        color: Color,
+        color: ColorValue,
         width: int,
         height: int,
         thickness: int = 0,
         transformation: Transformation = None,
     ):
+        """
+        A Rectangle is an Art representing a rectangle.
+
+        Params:
+        ---
+        - color: ColorValue, the color of the rectangle.
+        - width: int, the width of the art.
+        - height: int, the height of the art. 
+        - thickness: int, the thickness of the line used to draw the art.
+        - transformation: transform.Transformation = None. Any transformation (or Pipeline) that will be applied to the art when it is loaded.
+        """
+
         super().__init__(transformation)
         self.color = Color(color)
         self._initial_width, self.initial_height = width, height
@@ -35,11 +50,11 @@ class Rectangle(Art):
         self._durations = (0,)
 
 class RoundedRectangle(Art):
-    """A RoundedRectangle is an Art with a rounded rectangle inside."""
+    """A RoundedRectangle is an Art representing rounded rectangle."""
 
     def __init__(
         self,
-        color: Color,
+        color: ColorValue,
         width: int,
         height: int,
         top_left: int,
@@ -49,14 +64,29 @@ class RoundedRectangle(Art):
         thickness: int = 0,
         transformation: Transformation = None,
         allow_antialias: bool = True,
-        background_color: Color = None
+        background_color: ColorValue = None
     ):
+        """
+        A RoundedRectangle is an Art representing rounded rectangle.
+
+        Params:
+        ---
+        - color: ColorValue, the color of the rounded rectangle.
+        - width: int, the width of the art.
+        - height: int, the height of the art. 
+        - top_left, top_right, bottom_left, bottom_right: the radii of the rounded corners.
+        If one of the 3 last is None, the value for the top_left corner is used instead.
+        - thickness: int, the thickness of the line used to draw the art.
+        - transformation: transform.Transformation = None. Any transformation (or Pipeline) that will be applied to the art when it is loaded.
+        - allow_antialias: bool = True, if False, even with 'antialias' : True as a loading kwarg, the drawing will be done without antialias.
+        - background_color: ColorValue, the color of the background. This is used to make better renders when antialias is used.
+        """
         super().__init__(transformation)
         self.top_left = top_left
         self.top_right = top_right
         self.bottom_left = bottom_left
         self.bottom_right = bottom_right
-        self.color = color
+        self.color = Color(color)
         self.thickness = thickness
         self._width = self._initial_width = width
         self._height = self.initial_height = height
@@ -75,20 +105,32 @@ class RoundedRectangle(Art):
         self._durations = (0,)
 
 class Circle(Art):
-    """A Circle is an Art with a colored circle at the center of it."""
+    """A Circle is an Art representing a circle."""
 
     def __init__(
         self,
-        color: Color,
+        color: ColorValue,
         radius: int,
         thickness: int = 0,
         transformation: Transformation = None,
         allow_antialias: bool = True,
         background_color: Color = None
     ):
+        """
+        A Circle is an Art representing a circle.
+
+        Params:
+        ---
+        - color: ColorValue, the color of the circle.
+        - radius: int, the radius of circle. The art will have a width and height of twice the radius.
+        - thickness: int, the thickness of the line used to draw the art.
+        - transformation: transform.Transformation = None. Any transformation (or Pipeline) that will be applied to the art when it is loaded.
+        - allow_antialias: bool = True, if False, even with 'antialias' : True as a loading kwarg, the drawing will be done without antialias.
+        - background_color: ColorValue, the color of the background. This is used to make better renders when antialias is used.
+        """
         super().__init__(transformation)
         self.radius = radius
-        self.color = color
+        self.color = Color(color)
         self.thickness = thickness
         self._height = 2*radius
         self._width = 2*radius
@@ -117,19 +159,32 @@ class Ellipse(Art):
     def __init__(
         self,
         color: Color,
-        horizontal_radius: int,
-        vertical_radius: int,
+        radius_x: int,
+        radius_y: int,
         thickness: int = 0,
         transformation: Transformation = None,
         allow_antialias: bool = True,
         background_color: Color = None
     ) -> None:
+        """
+        An Ellipse is an Art representing a ellipse.
+
+        Params:
+        ---
+        - color: ColorValue, the color of the the ellipse.
+        - radius_x: int, the horizontal radius of the ellipse. The width of the art is of twice this value. 
+        - radius_y: int, the vertical radius of the ellipse. The height of the art is of twice this value. 
+        - thickness: int, the thickness of the line used to draw the art.
+        - transformation: transform.Transformation = None. Any transformation (or Pipeline) that will be applied to the art when it is loaded.
+        - allow_antialias: bool = True, if False, even with 'antialias' : True as a loading kwarg, the drawing will be done without antialias.
+        - background_color: ColorValue, the color of the background. This is used to make better renders when antialias is used.
+        """
         self.color = color
         self.thickness = thickness
         super().__init__(transformation)
-        self.radius_x, self.radius_y = horizontal_radius, vertical_radius
-        self._height = vertical_radius*2
-        self._width = horizontal_radius*2
+        self.radius_x, self.radius_y = radius_x, radius_y
+        self._height = radius_y*2
+        self._width = radius_x*2
         self.allow_antialias = allow_antialias
         self.background_color = background_color
         self._find_initial_dimension()
@@ -148,7 +203,7 @@ class Ellipse(Art):
         self._durations = (0,)
 
 class Polygon(Art):
-    """A Polygon is an Art with a colored polygon at the center."""
+    """A Polygon is an Art representing a polygon."""
 
     def __init__(
         self,
@@ -158,7 +213,21 @@ class Polygon(Art):
         transformation: Transformation = None,
         allow_antialias: bool = True,
         background_color: Color = None
-    ):
+    ):      
+        """
+        A Circle is an Art representing a polygon.
+
+        Params:
+        ---
+        - color: ColorValue, the color of the polygon.
+        - points: Sequence[tuple[int, int]], the points used to draw the polygon. All points will be translated in the plan so that
+        min(p[0] for p in points) == min(p[1] for p in points) == 0. The width and height of the art are equal to
+        max(p[0] for p in points) and max(p[1] for p in points) after the translation.
+        - thickness: int, the thickness of the line used to draw the art.
+        - transformation: transform.Transformation = None. Any transformation (or Pipeline) that will be applied to the art when it is loaded.
+        - allow_antialias: bool = True, if False, even with 'antialias' : True as a loading kwarg, the drawing will be done without antialias.
+        - background_color: ColorValue, the color of the background. This is used to make better renders when antialias is used.
+        """
 
         self.points = points
         self.thickness = thickness
@@ -187,15 +256,25 @@ class Polygon(Art):
         self._durations = (0,)
 
 class TexturedPolygon(Art):
-    """A Textured polygon is a polygon filled with an art as texture."""
+    """A Textured polygon represents a polygon filled with an art.."""
 
     def __init__(
         self,
         texture: Art,
         points: Sequence[tuple[int, int]],
-        texture_top_left: tuple[int, int] = (0, 0),
         transformation: Transformation = None,
     ):
+        """
+        A Textured polygon represents a polygon filled with an art.
+        
+        Params:
+        ----
+        - texture: Art, the Art drawn inside the polygon. The TexturedPolygon will have the same width, height, durations and introduction
+        as its texture. The surfaces use to create the TexturedPolygon are the surfaces of the texture when the TexturedPolygon is loaded.
+        - points: Sequence[tuple[int, int]] the list of points used to draw the polygon.
+        - transformation: transform.Transformation = None. Any transformation (or Pipeline) that will be applied to the art when it is loaded.
+        """
+
 
         self.points = points
         super().__init__(transformation)
@@ -203,7 +282,6 @@ class TexturedPolygon(Art):
         self._width = max(p[0] for p in self.points)
         self._find_initial_dimension()
         self.texture = texture
-        self.texture_top_left = texture_top_left
 
     def _load(self, **ld_kwargs):
 
@@ -221,12 +299,12 @@ class TexturedPolygon(Art):
 
         for surf in self.texture.surfaces:
             background = Surface((self._width, self._height), SRCALPHA)
-            gfxdraw.textured_polygon(background, self.points, surf, *self.texture_top_left)
+            gfxdraw.textured_polygon(background, self.points, surf.convert_alpha(), 0, 0)
             surfaces.append(background)
 
         self._surfaces = tuple(surfaces)
         self._durations = self.texture.durations
-        self.introduction = self.texture.introduction
+        self._introduction = self.texture.introduction
 
         if need_to_unload:
             self.texture.unload()
@@ -245,6 +323,19 @@ class TexturedCircle(Art):
         draw_bottom_right: bool = True,
         transformation: Transformation = None,
     ):
+        """
+        A TexturedCircle represents a circle filled with an art.
+        
+        Params:
+        ----
+        - texture: Art, the Art drawn inside the polygon. The TexturedPolygon will have the same width, height, durations and introduction
+        as its texture. The surfaces use to create the TexturedPolygon are the surfaces of the texture when the TexturedPolygon is loaded.
+        - radius: the radius of the circle
+        - center: the center of the circle. By default, the center of the Art. The circle may not be fully drawn.
+        - draw_top_right, draw_top_left, draw_bottom_left, draw_bottom_right: bool, specify whether the corresponding quart should be drawn.
+        - transformation: transform.Transformation = None. Any transformation (or Pipeline) that will be applied to the art when it is loaded.
+        """
+
         super().__init__(transformation)
         self.radius = radius
         self.draw_top_right = draw_top_right
@@ -277,26 +368,39 @@ class TexturedCircle(Art):
         mask = msk.from_surface(surf, 127)
         self._surfaces = tuple(mask.to_surface(setsurface=surface.convert_alpha(), unsetsurface=surf) for surface in self.texture.surfaces)
         self._durations = self.texture.durations
+        self._introduction = self.texture.introduction
+
 
         if need_to_unload:
             self.texture.unload()
 
 class TexturedEllipse(Art):
-    """A TexturedEllipse is an Art with a textured ellipsis at the center of it."""
+    """A TexturedEllipse represents an ellipse filled with an art."""
 
     def __init__(
         self,
         texture: Art,
-        horizontal_radius: int,
-        vertical_radius: int,
+        radius_x: int,
+        radius_y: int,
         center: tuple[int, int] = None,
         transformation: Transformation = None,
-    ) -> None:
+    ) -> None:   
+        """
+        A TexturedEllipse represents an ellipse filled with an art.
+        
+        Params:
+        ----
+        - texture: Art, the Art drawn inside the polygon. The TexturedPolygon will have the same width, height, durations and introduction
+        as its texture. The surfaces use to create the TexturedPolygon are the surfaces of the texture when the TexturedPolygon is loaded.
+        - radius_x, radius_y: int, the horizontal and vertical radii of the ellipse.
+        - center: tuple[int, int], default is the center of the art. The center of the ellipse.
+        - transformation: transform.Transformation = None. Any transformation (or Pipeline) that will be applied to the art when it is loaded.
+        """
         super().__init__(transformation)
         if center is None:
             center = texture.width//2, texture.height//2
         self.center = center
-        self.rect = (self.center[0] - horizontal_radius, self.center[0] - vertical_radius, horizontal_radius*2, vertical_radius*2)
+        self.rect = (self.center[0] - radius_x, self.center[0] - radius_y, radius_x*2, radius_y*2)
         self._width = texture.width
         self._height = texture.height
         self.texture = texture
@@ -319,12 +423,13 @@ class TexturedEllipse(Art):
         mask = msk.from_surface(surf, 127)
         self._surfaces = tuple(mask.to_surface(setsurface=surface.convert_alpha(), unsetsurface=surf) for surface in self.texture.surfaces)
         self._durations = self.texture.durations
+        self._introduction = self.texture.introduction
 
         if need_to_unload:
             self.texture.unload()
 
 class TexturedRoundedRectangle(Art):
-    """A TexturedRoundedRectangle is an Art with rounded angles."""
+    """A TexturedRoundedRectangle is an Art with rounded corners."""
 
     def __init__(
         self,
@@ -335,6 +440,18 @@ class TexturedRoundedRectangle(Art):
         bottom_right: int = None,
         transformation: Transformation = None,
     ):
+        """
+        A TexturedRoundedRectangle is an Art with rounded corners.
+        
+        Params:
+        ----
+        - texture: Art, the Art drawn inside the polygon. The TexturedPolygon will have the same width, height, durations and introduction
+        as its texture. The surfaces use to create the TexturedPolygon are the surfaces of the texture when the TexturedPolygon is loaded.
+        - top_left, top_right, bottom_left, bottom_right: int. The radii of the corners. If any of the 3 last is None, it it repplaced by the
+        value for top_left.
+        - transformation: transform.Transformation = None. Any transformation (or Pipeline) that will be applied to the art when it is loaded.
+        """
+
         super().__init__(transformation)
         self.top_left = top_left
         self.top_right = top_right if not top_right is None else top_left
@@ -368,6 +485,7 @@ class TexturedRoundedRectangle(Art):
         mask = msk.from_surface(surf, 127)
         self._surfaces = tuple(mask.to_surface(setsurface=surface.convert_alpha(), unsetsurface=surf) for surface in self.texture.surfaces)
         self._durations = self.texture.durations
+        self._introduction = self.texture.introduction
 
         if need_to_unload:
             self.texture.unload()
