@@ -116,7 +116,7 @@ class Art(ABC):
         self._loaded = False
 
     def load(self, **ld_kwargs):
-        """Load the art.
+        """Load the art and all its copies. If the Art is already loaded, only the copies not loaded are loaded. 
         
         Params:
         ----
@@ -124,9 +124,9 @@ class Art(ABC):
         if they are not provided, default values are used: False for antialias and 200_000 for the cost. Other entries can be given if some custom arts
         need them.
         """
-        self._time_since_last_change = 0
-        self._index = 0
+
         if not self._loaded:
+            self.reset()
             self._load(**ld_kwargs)
             self._verify_sizes()
             self._loaded = True
@@ -134,8 +134,7 @@ class Art(ABC):
                 self._transform(self._on_loading_transformation, **ld_kwargs)
 
         for copy in self._copies:
-            if not copy.is_loaded:
-                copy.load(**ld_kwargs)
+            copy.load(**ld_kwargs)
 
     def update(self, loop_duration: float) -> bool:
         """
