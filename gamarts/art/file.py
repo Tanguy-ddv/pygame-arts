@@ -3,7 +3,8 @@ from typing import Iterable
 import os
 from PIL import Image
 from pygame.image import load, fromstring
-from .art import Art, LoadingError
+from .art import Art
+from .._error import LoadingError
 from ..transform import Transformation
 
 class ImageFile(Art):
