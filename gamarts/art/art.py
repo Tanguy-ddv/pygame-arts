@@ -4,7 +4,7 @@ from threading import Thread
 from pygame import Surface, image, surfarray as sa, Rect
 from PIL import Image
 from ..transform import Transformation, Pipeline, ExtractSlice, ExtractOne
-from .._error import LoadingError
+from .._common import LoadingError
 
 class Art(ABC):
     """The Art class is the base for all the surfaces and animated surfaces of the game. They cannot be instanciated."""

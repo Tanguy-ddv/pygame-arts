@@ -4,7 +4,7 @@ import os
 from PIL import Image
 from pygame.image import load, fromstring
 from .art import Art
-from .._error import LoadingError
+from .._common import LoadingError
 from ..transform import Transformation
 
 class ImageFile(Art):

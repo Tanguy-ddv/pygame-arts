@@ -5,7 +5,7 @@ from ZOCallable import ZOZOCallable, verify_ZOZOCallable
 from ZOCallable.functions import linear
 import numpy as np
 from pygame import Surface, surfarray as sa, SRCALPHA, draw, Rect
-from .._error import LoadingError
+from .._common import LoadingError
 
 class Mask(ABC):
     """Mask is an abstract class for all masks."""

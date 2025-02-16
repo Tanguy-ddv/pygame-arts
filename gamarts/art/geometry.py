@@ -1,13 +1,10 @@
 """The geometry module contains arts build from a geometry."""
-
-from typing import Sequence, Tuple, Union
+from typing import Sequence
 from pygame import Surface, SRCALPHA, mask as msk, Color, gfxdraw, draw
 from .art import Art
 from ..transform import Transformation
 from pygamecv import rectangle, circle, ellipse, polygon, rounded_rectangle
-
-RGBAOutput = Tuple[int, int, int, int]
-ColorValue = Union[Color, int, str, Tuple[int, int, int], RGBAOutput, Sequence[int]]
+from .._common import ColorValue
 
 class Rectangle(Art):
     """A Rectangle is an Art representing a rectangle."""
