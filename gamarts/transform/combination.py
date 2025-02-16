@@ -3,10 +3,23 @@ from pygame import Surface, transform as tf
 from .transformation import Transformation
 
 class Concatenate(Transformation):
-    """The concatenate transformation concatenante two arts into one bigger animation."""
+    """The concatenate transformation concatenates multiple arts into one bigger animation."""
 
     def __init__(self, *others) -> None:
+        """
+        The concatenate transformation concatenates multiple arts into a longer one animation.
+
+        Params:
+        ---
+        - *others: Art, the other arts the transformed art will be concatenated with.
+
+        Raises:
+        ---
+        - ValueError, if all the arts do not have the exact same size.
+        """
         super().__init__()
+        if len(set(other.size for other in others)) != 1:
+            raise ValueError("All arts must have the same size to be concatenated.")
         self.others = others
 
     def apply(self, surfaces: tuple[Surface], durations: tuple[int], introduction: int, index: int, width: int, height: int, **ld_kwargs):
@@ -14,7 +27,7 @@ class Concatenate(Transformation):
         for art in self.others:
             if not art.is_loaded:
                 need_to_unloads.append(True)
-                art.load(ld_kwargs)
+                art.load(**ld_kwargs)
             else:
                 need_to_unloads.append(False)
 
@@ -58,11 +71,25 @@ def _combine_arts(*durations: tuple[int], introduction: int) -> tuple[list[tuple
 
 class Average(Transformation):
     """
-    Take the average of the images of the art.
+    Compute the average of the frames of the art. The average is computed taking into account the time and durations of the frames.
+    If the art have different total durations, the last frame of shorter arts is extend.
     """
 
     def __init__(self, *others) -> None:
+        """
+        Compute the average of the frames of the art.
+
+        Params:
+        ---
+        - *others: Art, the other arts the transformed art will be averaged with.
+
+        Raises:
+        ---
+        - ValueError, if all the arts do not have the exact same size.
+        """
         super().__init__()
+        if len(set(other.size for other in others)) != 1:
+            raise ValueError("All arts must have the same size to be concatenated.")
         self.others = others
 
     def apply(self, surfaces: tuple[Surface], durations: tuple[int], introduction: int, index: int, width: int, height: int, **ld_kwargs):
@@ -91,10 +118,19 @@ class Average(Transformation):
 
 class Blit(Transformation):
     """
-    Copy an art over another one.
+    Copy an art over another one. The blitting is computed taking into account the time and durations of the frames.
+    If the art have different total durations, the last frame of shortest art is extend.
     """
 
     def __init__(self, other, x: int, y: int) -> None:
+        """
+        Copy an art over another one.
+        
+        Params:
+        ---
+        - other: art, the art to be blitted on top of this one.
+        - x, y: int, the coordinate on which the other art is blitted.
+        """
         super().__init__()
         self.other = other
         self.pos = (x,y)
