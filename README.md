@@ -26,7 +26,7 @@ clock = pygame.time.Clock()
 # these loading kwargs are essential and should be passed to the get method given later.
 # the values can be changed, if you create your own arts with different loading kwargs,
 # you can safely add it to the dict.
-ld_kwargs = {'antialias' : True, 'cost_threshold' : 100_000}
+ld_kwargs = {'antialias' : True, 'cost_threshold' : 200_000}
 FPS=60
 running = True
 while running:
@@ -37,7 +37,7 @@ while running:
         elif event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
             lenna.transform(ShiftHue(50)) # If we press the space key, we shift the hue of the of the Art by 50°.
             # This is a pending transformation that will happen only at the next .get()
-    
+  
     lenna.update(loop_duration) # Update the art. For arts with several surfaces, otherwise it doesn't do anything
     surf = lenna.get(**ld_kwargs) # get the current surface of the art. At this point, if the art have not been loaded, load it (only once of course)
     # The pending transformation is also applied now.
@@ -51,6 +51,7 @@ pygame.quit()
 ### Common elements
 
 All arts have several methods and properties:
+
 - ``surfaces``: a property returning a tuple of all the art's surfaces
 - ``durations``: a property returning a tuple of the duration of each frame in the animation
 - ``introduction``: a property returning the introduction of the art.
@@ -65,12 +66,11 @@ All arts have several methods and properties:
 - ``update(loop_duration)`` updates the index of the frame based on time and their durations. It will return True if the art changed since the last call (a transformation or a new frame is to be shown.)
 - ``get(match: Art, **ld_kwargs) -> Surface`` returns the current surface of the animation, and apply the transformations waiting to be applied.
 - ``copy(additional_transformation: Transformation) -> Art``, return a fully indendent art using the frame of the original as initial
-surfaces, they can be further transformed.
+  surfaces, they can be further transformed.
 - ``reference() -> Art`` returns a dependant art. The original and the reference will fully share their surfaces, durations and introduction, any tranformation on one
-will happen on the other, however, they have independant indices.
+  will happen on the other, however, they have independant indices.
 - ``load(**ld_kwargs)`` loads the art. It is called automatically at the first call of ``get`` if the art has not been loaded yet.
 - ``unload()`` unload the art to release some memory.
-
 - ``len(art)`` returns the number of frames in the animation
 - ``art[x]`` where x is any slice or int (for example, ``art[1:9:3]``) returns a copy with a subset of the arts.
 
@@ -108,58 +108,59 @@ All of the Art have an optional argument ``transformation`` that performs a tran
 Multiple transformations are available to transform an Ar, they can be called by created a instance of one of the subclasses of ``Transformation``, listed below, and given as argument to the .transform() method of an art or in its constructor. If multiple transformations need to be applied, they have to be put inside a ``Pipeline``. Transformations can be created at the beginning of the game and assigned to a variable, or during the loop.
 
 - Transformations of the size of the art:
-    - ``Rotate(angle)`` rotates all the surfaces of the art like ``pygame.transform.rotate``.
-    - ``Zoom(scale, smooth)`` rescales all the surfaces of the art like ``pygame.transform.scale_by``.
-    - ``Resize(size, smooth)`` resizes all the surfaces of the  art like ``pygame.transform.scale``.
-    - ``Crop(left, top, width, height)`` crops all the surfaces of the art.
-    - ``Pad(color, left, right, top, bottom)`` adds padding to all the surfaces of the art.
-    - ``Flip(horizontal, vertical)`` flips all the surfaces of the art ``like pygame.transform.flip``.
-    - ``Transpose`` performs a matrix-like transposition of  the surfaces of the art.
-    - ``VerticalChop`` removes a vertical band in all the surfaces of the art.
-    - ``HorizontalChop`` removes a horizontal band in all the surfaces of the art.
 
+  - ``Rotate(angle)`` rotates all the surfaces of the art like ``pygame.transform.rotate``.
+  - ``Zoom(scale, smooth)`` rescales all the surfaces of the art like ``pygame.transform.scale_by``.
+  - ``Resize(size, smooth)`` resizes all the surfaces of the  art like ``pygame.transform.scale``.
+  - ``Crop(left, top, width, height)`` crops all the surfaces of the art.
+  - ``Pad(color, left, right, top, bottom)`` adds padding to all the surfaces of the art.
+  - ``Flip(horizontal, vertical)`` flips all the surfaces of the art ``like pygame.transform.flip``.
+  - ``Transpose`` performs a matrix-like transposition of  the surfaces of the art.
+  - ``VerticalChop`` removes a vertical band in all the surfaces of the art.
+  - ``HorizontalChop`` removes a horizontal band in all the surfaces of the art.
 - Transformation of the durations, current index or introduction of the art:
-    - ``SpeedUp(scale)`` divides all the durations by the scale.
-    - ``SlowDown(scale)`` multiplies all the durations by the scale.
-    - ``SetDuration(new_duration)`` sets all the durations of the frame to this duration.
-    - ``SetDurations(new_durations)`` sets the durations of the frame with a new list of durations. Must have the same length than the current number of frames.
-    - ``SetIntroductionIndex(introduction)`` sets the introduction attribute based on the provided index.
-    - ``SetIntroductionTime(introduction)`` sets the introduction to an index corresponding to the frame displayed at the given time.
-    - ``RandomizeIndex()`` randomizes the current index.
-    - ``Shuffle()`` shuffles the frames.
 
+  - ``SpeedUp(scale)`` divides all the durations by the scale.
+  - ``SlowDown(scale)`` multiplies all the durations by the scale.
+  - ``SetDuration(new_duration)`` sets all the durations of the frame to this duration.
+  - ``SetIntroductionIndex(introduction)`` sets the introduction attribute based on the provided index.
+  - ``SetIntroductionTime(introduction)`` sets the introduction to an index corresponding to the frame displayed at the given time.
+  - ``RandomizeIndex()`` randomizes the current index.
+  - ``Shuffle()`` shuffles the frames.
 - Transformations that extracts a subanimation from an animation
-    - ``ExtractSlice(slice)`` extracts a subset of the frames with the index slices. If some of the indices from the slice are greater than the number of frames, the extraction continues starting from the introduction.
-    - ``ExtractOne(index)`` extracts one frame from the art.
-    - ``First()`` extracts the first frame.
-    - ``Last()`` extracts the last frame.
-    - ``ExtractTime(time)`` extracts the frame displayed at a given time.
-    - ``ExtractWindow(from_time, to_time)`` extracts an animation from one time to another.
 
+  - ``ExtractSlice(slice)`` extracts a subset of the frames with the index slices. If some of the indices from the slice are greater than the number of frames, the extraction continues starting from the introduction.
+  - ``ExtractOne(index)`` extracts one frame from the art.
+  - ``First()`` extracts the first frame.
+  - ``Last()`` extracts the last frame.
+  - ``ExtractTime(time)`` extracts the frame displayed at a given time.
+  - ``ExtractWindow(from_time, to_time)`` extracts an animation from one time to another.
 - Transformation that draws on the art. All of these transformation uses the 'antialias' entry from the ld_kwargs to draw with or without antialias. The optional argument ``allow_antialias`` can also be set to False in order to disable the usage of antialias. Gamarts uses the [pygameCV](https://pygamecv.readthedocs.io/en/latest/) library for all the drawings to improve the drawing capacities of pygame. The thickness argument represent the thickness of the line used to draw anything on the surfaces. If the thickness is 0, the geometry will be filled. Otherwise, the line will overflow halfly on the inside of the draw, and halfly on the outside. For example, a circle with a thickness of 10 will be a filled from radius - 5 to radius + 5.
-    - ``DrawCircle(color, radius, center, thickness)`` draws a circle on all surfaces of the art.
-    - ``DrawRectangle(color, rect, thickness)`` draws a rectangle on all surfaces of the art.
-    - ``DrawRoundedRectantle(color, rect, top_left, top_right, top_right, bottom_right, bottom_left, thickness)`` draws a rounded rectangle on all surfaces of the art.
-    - ``DrawEllipse(color, x_radius, y_radius, center, thickness, angle)`` draws a rotated ellipse on all surfaces of the art.
-    - ``DrawPolygon(color, points, thickness)`` draws a polygon on all surfaces of the art.
-    - ``DrawLine(color, p1, p2, thickness)`` draws a line on all surfaces of the art.
-    - ``DrawLines(color, points, thickness, closed)`` draws multiple lines on all the surfaces of an art. This is faster than calling multiple times DrawLine.
-    - ``DrawArc(color, ellipsis_center, horizontal_radius, vertical_radius, from_angle, to_angle, angle, thickness)`` draws an arc from an rotated ellipsis. The arc is draw counterclockwise.
-    - ``DrawPie(color, ellipsis_center, horizontal_radius, vertical_radius, from_angle, to_angle, angle, thickness)`` draws an arc from an rotated ellipsis. The arc is draw counterclockwise. The arc is linked to the center of the ellipsis.
 
+  - ``DrawCircle(color, radius, center, thickness)`` draws a circle on all surfaces of the art.
+  - ``DrawRectangle(color, rect, thickness)`` draws a rectangle on all surfaces of the art.
+  - ``DrawRoundedRectantle(color, rect, top_left, top_right, top_right, bottom_right, bottom_left, thickness)`` draws a rounded rectangle on all surfaces of the art.
+  - ``DrawEllipse(color, x_radius, y_radius, center, thickness, angle)`` draws a rotated ellipse on all surfaces of the art.
+  - ``DrawPolygon(color, points, thickness)`` draws a polygon on all surfaces of the art.
+  - ``DrawLine(color, p1, p2, thickness)`` draws a line on all surfaces of the art.
+  - ``DrawLines(color, points, thickness, closed)`` draws multiple lines on all the surfaces of an art. This is faster than calling multiple times DrawLine.
+  - ``DrawArc(color, ellipsis_center, horizontal_radius, vertical_radius, from_angle, to_angle, angle, thickness)`` draws an arc from an rotated ellipsis. The arc is draw counterclockwise.
+  - ``DrawPie(color, ellipsis_center, horizontal_radius, vertical_radius, from_angle, to_angle, angle, thickness)`` draws an arc from an rotated ellipsis. The arc is draw counterclockwise. The arc is linked to the center of the ellipsis.
 - Transformations that applies an effect on an art, they can be called with a mask. In this case, the factor multiplies a matrix (generated by the mask) of floats between 0 and 1 and is used to as a per-pixel factor.
-    - ``SetAlpha(alpha, mask)`` sets the alpha of an art. If a mask is given, set the alpha value of each pixel to alpha*mask.matrix
-    - ``GrayScale()`` converts all the frames of an art into a gray scale with ``pygame.transform.gray_scale``.
-    - ``RBGMap(func)`` applies a transformation of all pixels one by one.
-    - ``RGBAMap`(func)`` applies a transformation of all pixels and its alpha value.
-    - ``Saturate(factor)`` applies a saturation effect.
-    - ``Desaturation(factor)`` applies a desaturation effect (colors becomes more gray).
-    - ``Darken(factor)`` reduces the luminosity.
-    - ``Lighten(factor)`` increases the luminosity.
-    - ``ShiftHue(value)`` shifts the value of the hue.
-    - ``AdjustContrast(constrast)`` changes the contrast.
-    - ``AddBrightness(value)`` modifies the brightness.
-    - ``Gamma(gamma)`` applies a gamma transformation
+
+  - ``SetAlpha(alpha, mask)`` sets the alpha of an art. If a mask is given, set the alpha value of each pixel to alpha*mask.matrix
+  - ``GrayScale()`` converts all the frames of an art into a gray scale with ``pygame.transform.gray_scale``.
+  - ``RBGMap(func)`` applies a transformation of all pixels one by one.
+  - ``RGBAMap`(func)`` applies a transformation of all pixels and its alpha value.
+  - ``Saturate(factor)`` applies a saturation effect.
+  - ``Desaturation(factor)`` applies a desaturation effect (colors becomes more gray).
+  - ``Darken(factor)`` reduces the luminosity.
+  - ``Lighten(factor)`` increases the luminosity.
+  - ``ShiftHue(value)`` shifts the value of the hue.
+  - ``AdjustContrast(constrast)`` changes the contrast.
+  - ``AddBrightness(value)`` modifies the brightness.
+  - ``Gamma(gamma)`` applies a gamma transformation
+- Transformation combining multiple arts.
 
 ### Masks
 
@@ -174,6 +175,9 @@ A few masks are implemented inside the gamarts.mask module. The list of masks is
 - ``GradientCircle(inner_radius, outer_radius, transition, center)`` is a continuous mask. The corresponding matrix has 0 inside the inner cirlce, 1 outside the outer circle and a value in-between when inside the outer circle but inside the inner circle
 - ``GradientRectangle(inner_left, inner_top, inner_right, inner_bottom, outer_left, outer_top, outer_right, outer_bottom)`` is a continuous mask. the corresponding matrix has 0 inside the inner rectangle, 0 outside the outer rectangle, and a velue-between when inside the outer rectangle but outside the inner rectangle.
 
+Some masks can be built by combining other masks:
+
+
 ### Cost
 
 Each transformation has a cost. This cost is calculated by the cost method and represent how long a transformation can be. It mainly depends on the number of pixels that have to be copied, which depends on the size of the drawing or mask for an effect. If the cost is higher than a given threshold (the ``cost_threshold`` entry of the ld_kwargs), then the transformation is computed in an independant thread.
@@ -185,3 +189,7 @@ Any contribution to help improving gamarts is welcome. New arts, transformations
 ## License
 
 Gamarts is distributed under a GNU General Public License.
+
+## Full documentation
+
+There is no full documentation available yet. Hopefully, this README and the docstrings contains enough information for now.
