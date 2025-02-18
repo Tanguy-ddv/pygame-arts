@@ -1,6 +1,6 @@
 """The transformations submodule contains all masks being transformations of an image, array or of another mask."""
 from abc import ABC, abstractmethod
-from typing import Callable
+from typing import Callable, Sequence
 from  pygame import surfarray as sa, transform as tf, image as im
 import numpy as np
 from .mask import Mask
@@ -10,18 +10,29 @@ class FromArtAlpha(Mask):
     """A mask from the alpha layer of an art."""
 
     def __init__(self, art, index: int= 0) -> None:
+        """
+        A mask from the alpha layer of an art.
+        
+        Params:
+        ---
+        - art: Art, the art whose alpha layer is used. A rescaled copy is used if the width and height of the art isn't matching the requested width and height.
+        - index: int. The index of the frame to be used in the art.
 
+        Notes:
+        ---
+        - If the art isn't loaded when the loading of this mask happens, the art will be loaded, then unloaded.
+        """
         super().__init__()
         self.art = art
         self.index = index
 
     def _load(self, width: int, height: int, **ld_kwargs):
         need_to_unload = False
-        if not self.art.is_loaded:
+        if not self.art.is_loaded():
             need_to_unload = True
             self.art.load(**ld_kwargs)
 
-        self.matrix = 1 - sa.array_alpha(tf.scale(self.art.surfaces[self.index], (width, height))).astype(np.int64)/255
+        self.matrix = 1 - sa.array_alpha(tf.scale(self.art.surfaces[self.index], (width, height)).convert_alpha()).astype(np.int8)/255
 
         if need_to_unload:
             self.art.unload()
@@ -35,6 +46,19 @@ class FromArtColor(Mask):
     """
 
     def __init__(self, art, function: Callable[[int, int, int], float], index: int = 0) -> None:
+        """
+        A mask from the color layers of an art.
+        
+        Params:
+        ---
+        - art: Art, the art whose color layers is used. A rescaled copy is used if the width and height of the art isn't matching the requested width and height.
+        - function: Callable[[int, int, int], float]: A function mapping an rgb tuple to a float between 0 and 1.
+        - index: int. The index of the frame to be used in the art.
+
+        Notes:
+        ---
+        - If the art isn't loaded when the loading of this mask happens, the art will be loaded, then unloaded.
+        """
         super().__init__()
         self.art = art
         self.index = index
@@ -42,7 +66,7 @@ class FromArtColor(Mask):
 
     def _load(self, width: int, height: int, **ld_kwargs):
         need_to_unload = False
-        if not self.art.is_loaded:
+        if not self.art.is_loaded():
             need_to_unload = True
             self.art.load(**ld_kwargs)
 
@@ -59,6 +83,14 @@ class FromImageColor(Mask):
     """
 
     def __init__(self, path: str, function: Callable[[int, int, int], float]) -> None:
+        """
+        A mask from an image.
+
+        Params:
+        ---
+        - path: the path to the image.
+        - function: Callable[[int, int, int], float]: A function mapping an rgb tuple to a float between 0 and 1.
+        """
         self.path = path
         super().__init__()
         self.map = function
@@ -68,9 +100,16 @@ class FromImageColor(Mask):
         self.matrix = np.apply_along_axis(lambda t: self.map(*t), 2, rgb_array.astype(np.int64))
 
 class _MaskCombination(Mask, ABC):
-    """MaskCombinations are abstract class for all mask combinations: sum, products and average"""
+    """MaskCombinations is an abstract class for all mask combinations: sum, products and average"""
 
     def __init__(self, *masks: Mask):
+        """
+        Combine the masks.
+
+        Params:
+        ---
+        - *masks: Mask, the masks to be combined.
+        """
 
         super().__init__()
         self.masks = masks
@@ -119,9 +158,23 @@ class AverageOfMasks(_MaskCombination):
     An average of masks is a mask based on the average of the matrixes of the masks.
     """
 
-    def __init__(self, *masks: Mask, weights= None):
+    def __init__(self, *masks: Mask, weights: Sequence = None):
+        """
+        An average of masks is a mask based on the average of the matrixes of the masks.
+
+        Params:
+        ---
+        - *masks: Mask, the masks to be averaged.
+        - weights: Sequence, a sequence of number to be used to weight the average.
+
+        Raises:
+        ---
+        ValueError if the weights are provded and do not have a length equa to the number of masks.
+        """
         if weights is None:
             weights = [1]*len(masks)
+        if len(weights) != len(masks):
+            raise ValueError("The number of weights should match the number of masks")
         super().__init__(*masks)
         self.weights = weights
 
@@ -140,6 +193,17 @@ class BlitMaskOnMask(_MaskCombination):
     """
 
     def __init__(self, background: Mask, foreground: Mask, bg_threshold: float = 0, fg_threshold: float = 0.5, reverse: bool = False):
+        """
+        Replace the values from a mask by others.
+        
+        Params:
+        ---
+        - background: mask, the mask having some values to be replaced.
+        - foreground: mask, the mask whose values will replace the background values.
+        - bg_threshold: Only the value of the background above (or below if reverse is True) that threshold are replaced.
+        - fg_threshold: Only the value of the foreground below that threshold are used.
+        - reverse: flag for comparison with bg_threshold.
+        """
         super().__init__(background, foreground)
         self.bg_threshold = bg_threshold
         self.fg_threshold = fg_threshold
@@ -160,6 +224,13 @@ class InvertedMask(Mask):
     """
 
     def __init__(self, mask: Mask):
+        """
+        An inverted mask is a mask whose value are the opposite of the parent mask.
+
+        Params:
+        ---
+        - mask: Mask, the mask to be inverted.
+        """
         super().__init__()
         self._mask = mask
 
@@ -175,6 +246,15 @@ class TransformedMask(Mask):
     """
 
     def __init__(self, mask: Mask, transformation: Callable[[float], float] | Callable[[np.ndarray], np.ndarray]):
+        """
+        Create a mask from the transformation of another mask.
+        
+        Params:
+        ---
+        - mask: Mask, the mask to be transformed
+        - transformation: Callable[[float], float] | Callable[[numpy.ndarray], numpy.ndarray]: The transformation applied to the mask.
+        The transformation create an array from another. Both arrays must have the same shape.
+        """
         super().__init__()
         self._mask = mask
         self.transformation = transformation
@@ -195,6 +275,16 @@ class BinaryMask(Mask):
     """
 
     def __init__(self, mask: Mask, threshold: float, reverse: bool = False):
+        """
+        Create a binary mask.
+        
+        Params:
+        ---
+        - mask: the mask to be binarized
+        - threshold: the threshold used to compare the values.
+        - reverse: flag used to know if the 1 of the binary mask are above the threshold (not reversed) or below the threshold (reversed)
+        """
+
         super().__init__()
         self.threshold = threshold
         self._mask = mask
