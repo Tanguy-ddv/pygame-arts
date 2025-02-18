@@ -39,15 +39,6 @@ class SetAlpha(Transformation):
         else:
             return width*height*length
 
-class GrayScale(Transformation):
-    """
-    The gray scale transformation turn the art into a black and white art.
-    """
-
-    def apply(self, surfaces: tuple[Surface], durations: tuple[int], introduction: int, index: int, width: int, height: int, **ld_kwargs):
-        graysurfeaces = tuple(tf.grayscale(surf) for surf in surfaces)
-        return graysurfeaces, durations, introduction, None, width, height
-
 class _MatrixTransformation(Transformation):
     """Matrix transformations are bases for all transformation transforming the matrix with an effect."""
 
