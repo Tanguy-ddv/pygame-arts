@@ -31,6 +31,7 @@ class Transformation(ABC):
         """Calculate the new dimensions of the art after transformation."""
         return width, height
 
+    # pylint: disable=unused-argument
     def cost(self, width, height, length, **ld_kwargs):
         """
         Return the cost of the transformation.
@@ -67,7 +68,7 @@ class Pipeline(Transformation):
     
     def __len__(self):
         return sum(len(transfo) for transfo in self._transformations)
-    
+
     def is_empty(self) -> bool:
         """Return True if the Pipeline is empty of transformations."""
         return not self._transformations
@@ -92,7 +93,7 @@ class Pipeline(Transformation):
 
     def cost(self, width, height, length, **ld_kwargs):
         return sum(transfo.cost(width, height, length, **ld_kwargs) for transfo in self._transformations)
-    
+
     def copy(self):
         """
         Return a copy of the Pipeline.
@@ -567,7 +568,7 @@ class ExtractTime(Transformation):
         """
         super().__init__()
         self.time = time
-    
+
     def apply(self, surfaces: tuple[Surface], durations: tuple[int], introduction: int, index: int, width: int, height: int, **ld_kwargs):
         cum_time = 0
         idx = 0
@@ -636,7 +637,7 @@ class ExtractWindow(Transformation):
             surfs.append(surfaces[idx])
             durs.append(durations[idx])
             indices.append(idx)
-        
+
         if introduction not in indices: introduction = 0
         else: introduction = introduction - min(indices)
 
@@ -649,7 +650,7 @@ class RandomizeIndex(Transformation):
     """Randomize the current index of the animation."""
 
     def apply(self, surfaces: tuple[Surface], durations: tuple[int], introduction: int, index: int, width: int, height: int, **ld_kwargs):
-        return surfaces, durations, introduction, randint(len(surfaces)), width, height
+        return surfaces, durations, introduction, randint(0, len(surfaces)), width, height
 
 class Shuffle(Transformation):
     """

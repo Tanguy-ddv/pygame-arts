@@ -1,4 +1,4 @@
-"""The transformations submodule contains all masks being transformations of an image, array or of another mask."""
+"""The transformation submodule contains all masks being transformations of an image, array or of another mask."""
 from abc import ABC, abstractmethod
 from typing import Callable, Sequence
 from  pygame import surfarray as sa, transform as tf, image as im
@@ -138,6 +138,7 @@ class DifferenceOfMasks(_MaskCombination):
     """
     A difference of masks is a masked based on the difference between the matrixes of two masks, clamped between 0 and 1.
     """
+    # pylint: disable=arguments-differ
     def _combine(self, matrix1, matrix2):
         return matrix1 - matrix2
 

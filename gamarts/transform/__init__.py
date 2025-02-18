@@ -1,3 +1,4 @@
+"""The transform module contiains all the transformations that can be applied to an Art."""
 from .combination import Blit, Average, Concatenate
 from .transformation import (
     Transformation, Pipeline,

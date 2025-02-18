@@ -13,4 +13,3 @@ from .transformation import (
     FromArtAlpha, FromArtColor, FromImageColor, SumOfMasks, ProductOfMasks, AverageOfMasks, DifferenceOfMasks,
     BinaryMask, BlitMaskOnMask, InvertedMask, TransformedMask
 )
-

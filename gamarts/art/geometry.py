@@ -1,9 +1,9 @@
 """The geometry module contains arts build from a geometry."""
 from typing import Sequence
 from pygame import Surface, SRCALPHA, mask as msk, Color, gfxdraw, draw
+from pygamecv import rectangle, circle, ellipse, polygon, rounded_rectangle
 from .art import Art
 from ..transform import Transformation
-from pygamecv import rectangle, circle, ellipse, polygon, rounded_rectangle
 from .._common import ColorValue
 
 class Rectangle(Art):
@@ -210,7 +210,7 @@ class Polygon(Art):
         transformation: Transformation = None,
         allow_antialias: bool = True,
         background_color: Color = None
-    ):      
+    ):
         """
         A Circle is an Art representing a polygon.
 
@@ -271,7 +271,6 @@ class TexturedPolygon(Art):
         - points: Sequence[tuple[int, int]] the list of points used to draw the polygon.
         - transformation: transform.Transformation = None. Any transformation (or Pipeline) that will be applied to the art when it is loaded.
         """
-
 
         self.points = points
         super().__init__(transformation)
@@ -353,7 +352,7 @@ class TexturedCircle(Art):
         if not self.texture.is_loaded:
             need_to_unload = True
             self.texture.load(**ld_kwargs)
-    
+
         else: # the texture might have change, so can its dimensions.
             self._width = self.texture.width
             self._height = self.texture.height
@@ -381,7 +380,7 @@ class TexturedEllipse(Art):
         radius_y: int,
         center: tuple[int, int] = None,
         transformation: Transformation = None,
-    ) -> None:   
+    ) -> None:
         """
         A TexturedEllipse represents an ellipse filled with an art.
         

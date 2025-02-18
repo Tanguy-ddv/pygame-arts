@@ -36,17 +36,17 @@ class Art(ABC):
         self._has_changed = False
         self._copies: list[_ArtAsCopy] = []
         self._references: list[_ArtAsReference] = []
-    
+
     @property
     def surfaces(self):
         """Return the surfaces of the art in order of display."""
         return self._surfaces
-    
+
     @property
     def durations(self):
         """Return the durations of the frames in order of display."""
         return self._durations
-    
+
     @property
     def introduction(self):
         """Return the introduction index of the art."""
@@ -288,7 +288,7 @@ class Art(ABC):
             durations = self.durations[index] if isinstance(index, slice) else self.durations
             pil_images = [Image.fromarray(sa.array3d(surf)) for surf in surfaces]
             pil_images[0].save(path, format='GIF', save_all=True, append_images = pil_images[1:], duration=durations)
-    
+
     def __len__(self):
         return len(self._surfaces)
 
@@ -327,7 +327,7 @@ class _ArtAsReference(Art):
         super().__init__(None)
         self._original = original
         self._height = self._original.height
-        self._width = self._original.width    
+        self._width = self._original.width
 
     def _load(self, **ld_kwargs):
         if not self._original.is_loaded():
@@ -339,11 +339,11 @@ class _ArtAsReference(Art):
     @property
     def surfaces(self):
         return self._original.surfaces
-    
+
     @property
     def durations(self):
         return self._original.durations
-    
+
     @property
     def introduction(self):
         return self._original.introduction

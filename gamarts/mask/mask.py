@@ -102,7 +102,7 @@ class MatrixMask(Mask):
             ],
             'edge'
         )[: width, :height]
-    
+
     def update_matrix(self, new_matrix: np.ndarray):
         """Update the current matrix with a user-defined matrix.
             The matrix is padded or cropeed to it the requested width and height.
@@ -144,7 +144,6 @@ class Ellipse(Mask):
     """An Ellipse is a mask with two values: 0 in the ellipse and 1 outside."""
 
     def __init__(self, radius_x: int | float, radius_y: int | float, center: tuple[int, int] | tuple[float, float] = (0.5, 0.5)):
-        super().__init__()
         """An Ellipse is a mask with two values: 0 in the ellipse and 1 outside.
         
         Params:
@@ -158,6 +157,7 @@ class Ellipse(Mask):
         If ints are provided, they are directly used. The two values are independant, an int can be provided for the x component and a float for
         the second component (and vice versa).
         """
+        super().__init__()
         self.radius_x = radius_x
         self.radius_y = radius_y
         self.center = center
@@ -412,8 +412,8 @@ class GradientRectangle(Mask):
         outer_top = self.outer_top*height if 0 <= self.outer_top <= 1 and isinstance(self.outer_top, float) else self.outer_top
         outer_bottom = self.outer_bottom*height if 0 <= self.outer_bottom <= 1 and isinstance(self.outer_bottom, float) else self.outer_bottom
 
-        left_dist = np.clip((inner_left - x_indices) / (inner_left - self.outer_left + 1), 0, 1)
-        right_dist = np.clip((x_indices - inner_right) / (outer_right - self.inner_right + 1), 0, 1)
+        left_dist = np.clip((inner_left - x_indices) / (inner_left - outer_left + 1), 0, 1)
+        right_dist = np.clip((x_indices - inner_right) / (outer_right - inner_right + 1), 0, 1)
         top_dist = np.clip((inner_top - y_indices) / (inner_top - outer_top + 1), 0, 1)
         bottom_dist = np.clip((y_indices - inner_bottom) / (outer_bottom - inner_bottom + 1), 0, 1)
 

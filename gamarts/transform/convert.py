@@ -1,6 +1,6 @@
 """The convert module contains transformations related to a conversion format."""
-from .transformation import Transformation
 from pygame import transform as tf, Surface
+from .transformation import Transformation
 
 class GrayScale(Transformation):
     """
@@ -23,4 +23,3 @@ class ConvertRGB(Transformation):
     def apply(self, surfaces, durations, introduction, index, width, height, **ld_kwargs):
         surfaces = tuple(surf.convert() for surf in surfaces)
         return surfaces, durations, introduction, None, width, height
-

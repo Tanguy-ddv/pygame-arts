@@ -1,3 +1,4 @@
+"""The drawing module contains the drawing transformations."""
 from typing import Sequence
 from pygame import Surface, Rect
 from pygamecv import rectangle, line, lines, polygon, circle, ellipse, pie, arc, rounded_rectangle
@@ -82,7 +83,6 @@ class DrawRectangle(Transformation):
             return self.rect.width*self.rect.height*length
         else:
             return self.rect.width*self.rect.height*length*4 # Once for the color draw, twice for the apha rendering (copy and addWeighted) and once for the final blit.
-
 
 class DrawRoundedRectantle(Transformation):
     """Draw a rectangle on the art, with rounded corners."""

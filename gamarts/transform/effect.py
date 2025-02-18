@@ -12,9 +12,8 @@ class SetAlpha(Transformation):
     """
 
     def __init__(self, alpha: int = None, mask: Mask = None) -> None:
-        super().__init__()
         """
-        if alpha is specified, the SetAlpha transformation replace the alpha value of all the pixel by a new value.
+        If alpha is specified, the SetAlpha transformation replace the alpha value of all the pixel by a new value.
         if mask is specified, the transformation replace the alpha value of all pixel by the value of the mask.
         Pixels that are transparent from the begining will not change.
 
@@ -23,7 +22,8 @@ class SetAlpha(Transformation):
         - alpha: int, an integer between 0 and 255
         - mask: as gamarts.mask.Mask. One of two must be given.
         """
-        
+        super().__init__()
+
         if alpha is None and mask is None:
             raise ValueError("Both alpha and mask cannot be None.")
         self.alpha = alpha
@@ -58,14 +58,12 @@ class _MatrixTransformation(Transformation):
         if self.mask is None or not self.mask.is_loaded():
             return width*height*length
         # If the mask is not loaded yet, every pixel of something (either the mask or the surfaces) would be impacted.
-        
         # If the mask is already loaded, we get the smallest submask.
         not_null_columns = self.mask.not_null_columns()
         not_null_rows = self.mask.not_null_rows()
         if not_null_columns and not_null_rows:
             return (not_null_columns[-1] - not_null_columns[0])*(not_null_rows[-1]*not_null_rows[0])*length
         return 0
-        
 
 class RBGMap(_MatrixTransformation):
     """
@@ -98,7 +96,7 @@ class RBGMap(_MatrixTransformation):
                 rgb_array[self.mask.matrix > self.mask_threshold] = np.clip(np.apply_along_axis(lambda t: self.function(*t), 2, rgb_array[self.mask.matrix > self.mask_threshold]), 0, 255).astype(np.int8)
 
         return surfaces, durations, introduction, None, width, height
-    
+
 class RGBAMap(_MatrixTransformation):
     """
     An RGBAMap is a transformation applied directly on the pixel of the surfaces. The alpha value is taken into account.
