@@ -25,7 +25,7 @@ class Concatenate(Transformation):
     def apply(self, surfaces: tuple[Surface], durations: tuple[int], introduction: int, index: int, width: int, height: int, **ld_kwargs):
         need_to_unloads = []
         for art in self.others:
-            if not art.is_loaded:
+            if not art.is_loaded():
                 need_to_unloads.append(True)
                 art.load(**ld_kwargs)
             else:
@@ -95,7 +95,7 @@ class Average(Transformation):
     def apply(self, surfaces: tuple[Surface], durations: tuple[int], introduction: int, index: int, width: int, height: int, **ld_kwargs):
         need_to_unloads = []
         for art in self.others:
-            if not art.is_loaded:
+            if not art.is_loaded():
                 need_to_unloads.append(True)
                 art.load(**ld_kwargs)
             else:
@@ -137,7 +137,7 @@ class Blit(Transformation):
 
     def apply(self, surfaces: tuple[Surface], durations: tuple[int], introduction: int, index: int, width: int, height: int, **ld_kwargs):
         need_to_unload = False
-        if not self.other.is_loaded:
+        if not self.other.is_loaded():
             self.other.load(**ld_kwargs)
             need_to_unload = True
 

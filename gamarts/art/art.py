@@ -81,7 +81,6 @@ class Art(ABC):
         """Return the width of the art."""
         return self._width
 
-    @property
     def is_loaded(self):
         """Return true if the art is loaded"""
         return self._loaded
@@ -313,7 +312,7 @@ class _ArtAsCopy(Art):
         self._find_initial_dimension()
 
     def _load(self, **ld_kwargs):
-        if not self._original.is_loaded:
+        if not self._original.is_loaded():
             self._original.load(**ld_kwargs)
 
         self._surfaces = tuple(surf.copy() for surf in self._original.surfaces)
@@ -331,7 +330,7 @@ class _ArtAsReference(Art):
         self._width = self._original.width    
 
     def _load(self, **ld_kwargs):
-        if not self._original.is_loaded:
+        if not self._original.is_loaded():
             self._original.load(**ld_kwargs)
 
     def _transform(self, transformation: Transformation, **ld_kwargs):
