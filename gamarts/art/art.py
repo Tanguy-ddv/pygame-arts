@@ -265,7 +265,8 @@ class Art(ABC):
 
     def get_rect(self) -> Rect:
         """Create a pygame.Rect without masked based on this art."""
-        return self.surfaces[0].get_rect()
+        rect = Rect(0, 0, self.width, self.height)
+        return rect
 
     def save(self, path: str, index: int | slice = None):
         """
