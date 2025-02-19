@@ -43,7 +43,7 @@ class Rectangle(Art):
         # Here, we unsure the width and height are excatly what is asked to be, not width + thickness and height + thickness
         rect = (self.thickness//2, self.thickness//2, self._initial_width - self.thickness, self.initial_height - self.thickness)
         rectangle(surf, rect, self.color, self.thickness)
-        self.surfaces = (surf,)
+        self._surfaces = (surf,)
         self._durations = (0,)
 
 class RoundedRectangle(Art):
