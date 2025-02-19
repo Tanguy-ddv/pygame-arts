@@ -38,7 +38,7 @@ class Rectangle(Art):
         self._find_initial_dimension()
 
     def _load(self, **ld_kwargs):
-        surf = Surface((self._initial_width, self.initial_height), SRCALPHA if self.color.a != 255 and self.thickness != 0 else 0)
+        surf = Surface((self._initial_width, self.initial_height), SRCALPHA if self.color.a != 255 or self.thickness != 0 else 0)
         # Pygamecv's paradigm is: defining the control points and let the thickness go outside of the geometry
         # Here, we unsure the width and height are excatly what is asked to be, not width + thickness and height + thickness
         rect = (self.thickness//2, self.thickness//2, self._initial_width - self.thickness, self.initial_height - self.thickness)
