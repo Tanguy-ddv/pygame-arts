@@ -4,7 +4,7 @@ setup(
     name='gamarts',
     author="Tanguy Dugas du Villard",
     author_mail="tanguy.dugas01@gmail.com",
-    version='1.1.0',
+    version='1.1.1',
     description="Gamarts is a python library providing a unique way to represent static and animated surfaces in pygame, alongside with a clever loading and unloading behavior.",
     packages=find_packages(),
     install_requires=[

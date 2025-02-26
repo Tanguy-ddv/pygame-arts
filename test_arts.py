@@ -332,9 +332,9 @@ def see_masks3():
 # see_transformations4()
 # see_transformations5()
 # see_transformations6()
-# see_masks1()
-# see_masks2()
-# see_masks3()
+see_masks1()
+see_masks2()
+see_masks3()
 
 def see_reference():
     from gamarts import GIFFile, LD_KWARGS

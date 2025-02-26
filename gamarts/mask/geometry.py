@@ -58,7 +58,7 @@ class Ellipse(Mask):
         self.center = center
 
     def _load(self, width: int, height: int, **ld_kwargs):
-        grid_y, grid_x = np.ogrid[:height, :width]
+        grid_y, grid_x = np.ogrid[:width, :height]
         center = (
             self.center[0]*width if 0 <= self.center[0] <= 1 else self.center[0],
             self.center[1]*height if 0 <= self.center[1] <= 1 else self.center[1]
@@ -111,7 +111,7 @@ class Rectangle(Mask):
         self.bottom = bottom
 
     def _load(self, width:int, height:int, **ld_kwargs):
-        grid_y, grid_x = np.ogrid[:height, :width]
+        grid_y, grid_x = np.ogrid[:width, :height]
         left = self.left*width if 0 <= self.left <= 1 and isinstance(self.left, float) else self.left
         right = self.right*width if 0 <= self.right <= 1 and isinstance(self.right, float) else self.right
         top = self.top*height if 0 <= self.top <= 1 and isinstance(self.top, float) else self.top
@@ -295,7 +295,7 @@ class GradientRectangle(Mask):
         self.transition = transition
 
     def _load(self, width: int, height: int, **ld_kwargs):
-        y_indices, x_indices = np.meshgrid(np.arange(height), np.arange(width), indexing='ij')
+        y_indices, x_indices = np.meshgrid(np.arange(width), np.arange(height), indexing='ij')
 
         inner_left = self.inner_left*width if 0 <= self.inner_left <= 1 and isinstance(self.inner_left, float) else self.inner_left
         inner_right = self.inner_right*width if 0 <= self.inner_right <= 1 and isinstance(self.inner_right, float) else self.inner_right

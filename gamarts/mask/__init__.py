@@ -8,8 +8,8 @@ The fourth one is composed of masks extracted from arts or from images.
 The fifth one is combinations or transformation of other masks.
 The last one is moving masks.
 """
-from .mask import Mask, MatrixMask, Circle, Ellipse, GradientCircle, GradientRectangle, Rectangle, RoundedRectangle, Polygon
+from .mask import Mask, MatrixMask, SumOfMasks, ProductOfMasks, AverageOfMasks, DifferenceOfMasks, DivisionOfMasks, ModulusOfMasks, BlitMaskOnMask
 from .transformation import (
-    FromArtAlpha, FromArtColor, FromImageColor, SumOfMasks, ProductOfMasks, AverageOfMasks, DifferenceOfMasks,
-    BinaryMask, BlitMaskOnMask, InvertedMask, TransformedMask
+    FromArtAlpha, FromArtColor, FromImageColor, BinaryMask, InvertedMask, TransformedMask
 )
+from .geometry import Circle, GradientCircle, Ellipse, Rectangle, RoundedRectangle, GradientRectangle, Polygon

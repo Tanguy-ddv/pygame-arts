@@ -1,7 +1,7 @@
 """This mask submodule contains the bases for masks and geometrical masks."""
 from abc import ABC, abstractmethod
 import numpy as np
-from typing import Sequence
+from typing import Sequence, Union
 from .._common import LoadingError
 
 class Mask(ABC):
@@ -72,7 +72,7 @@ class Mask(ABC):
             return np.sum(self.matrix) == self.matrix.size
         raise LoadingError("Unloaded masks cannot be full.")
 
-    def __add__(self, other: 'Mask' | float | int):
+    def __add__(self, other: Union['Mask', float, int]):
         if isinstance(other, Mask):
             return SumOfMasks(self, other)
         elif isinstance(other, (float, int)):
@@ -80,10 +80,10 @@ class Mask(ABC):
         else:
             raise TypeError(f"Only masks and numbers can be added to masks, not {type(other)}")
 
-    def __radd__(self, other: 'Mask' | float | int):
+    def __radd__(self, other: Union['Mask', float, int]):
         return self.__add__(other)
 
-    def __mul__(self, other: 'Mask' | float | int):
+    def __mul__(self, other: Union['Mask', float, int]):
         if isinstance(other, Mask):
             return ProductOfMasks(self, other)
         elif isinstance(other, (float, int)):
@@ -91,10 +91,10 @@ class Mask(ABC):
         else:
             raise TypeError(f"Only masks and numbers can be multiplied to masks, not {type(other)}")
     
-    def __rmul__(self, other: 'Mask' | float | int):
+    def __rmul__(self, other: Union['Mask', float, int]):
         return self.__mul__(self, other)
 
-    def __sub__(self, other: 'Mask' | float | int):
+    def __sub__(self, other: Union['Mask', float, int]):
         if isinstance(other, Mask):
             return DifferenceOfMasks(self, other)
         elif isinstance(other, (float, int)):
@@ -102,7 +102,7 @@ class Mask(ABC):
         else:
             raise TypeError(f"Only masks and numbers can be substracted with masks, not {type(other)}")
     
-    def __div__(self, other: 'Mask' | float | int):
+    def __div__(self, other: Union['Mask', float, int]):
         if other == 0:
             raise ZeroDivisionError()
         if isinstance(other, Mask):
@@ -112,7 +112,7 @@ class Mask(ABC):
         else:
             raise TypeError(f"Only masks and numbers can divide masks, not {type(other)}")
 
-    def __mod__(self, other: 'Mask' | float):
+    def __mod__(self, other: Union['Mask', float, int]):
         if isinstance(other, Mask):
             return ModulusOfMasks(self, other)
         elif isinstance(other, float):
